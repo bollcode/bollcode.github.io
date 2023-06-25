@@ -1,0 +1,750 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/basketball.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="bollcode">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Linux的I&#x2F;O与驱动 本文我们将了解一下linux的IO原理以及linux是如何操作不同的设备的，其实就是linux的设备驱动的工作逻辑。 【参考资料】 Linux I&#x2F;O 原理和 Zero-copy 技术全面揭秘 linux通用块设备层.pdf csapp书籍 I&#x2F;O架构linux 的IO表示输入输出，指的是一起操作程序或设备和计算机之间发生书籍传输的过程，它主要分为IO设备和IO接口两部分">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux的I&#x2F;O与驱动">
+<meta property="og:url" content="http://example.com/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Linux的I&#x2F;O与驱动 本文我们将了解一下linux的IO原理以及linux是如何操作不同的设备的，其实就是linux的设备驱动的工作逻辑。 【参考资料】 Linux I&#x2F;O 原理和 Zero-copy 技术全面揭秘 linux通用块设备层.pdf csapp书籍 I&#x2F;O架构linux 的IO表示输入输出，指的是一起操作程序或设备和计算机之间发生书籍传输的过程，它主要分为IO设备和IO接口两部分">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/linux.jpg">
+<meta property="article:published_time" content="2023-06-13T14:16:29.113Z">
+<meta property="article:modified_time" content="2023-06-25T08:35:50.360Z">
+<meta property="article:author" content="bollcode">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/linux.jpg">
+  
+  
+  
+  <title>Linux的I/O与驱动 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>bollcode</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Linux的I/O与驱动"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-06-13 22:16" pubdate>
+          2023年6月13日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          12k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          101 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Linux的I/O与驱动</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Linux的I-O与驱动"><a href="#Linux的I-O与驱动" class="headerlink" title="Linux的I/O与驱动"></a>Linux的I/O与驱动</h1><p><img src="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/14bc3d26efe093d3eada173f869146b1.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>本文我们将了解一下linux的IO原理以及linux是如何操作不同的设备的，其实就是linux的设备驱动的工作逻辑。</p>
+<p>【参考资料】</p>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000038700641"><strong>Linux I/O 原理和 Zero-copy 技术全面揭秘</strong></a></p>
+<p><a target="_blank" rel="noopener" href="https://www.ilinuxkernel.com/files/Linux.Generic.Block.Layer.pdf"><strong>linux通用块设备层.pdf</strong></a></p>
+<p><strong>csapp书籍</strong></p>
+<h2 id="I-O架构"><a href="#I-O架构" class="headerlink" title="I/O架构"></a>I/O架构</h2><p>linux 的IO表示输入输出，指的是一起操作程序或设备和计算机之间发生书籍传输的过程，它主要分为IO设备和IO接口两部分，常见的IO设备有硬盘、鼠标、键盘等，而IO接口指的就是设备控制器，实现cpu和IO设备之间的信息交换。</p>
+<p>linux操作系统的IO架构如图，其中设备控制器和硬件都是属于外设，设备控制器属于IO接口（其实就是对应的设备控制器中的寄存器），驱动程序负责和设备控制器交互，然后设备控制器将控制硬件完成数据的传输。</p>
+<p><img src="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/image-20230525221457199.png" srcset="/img/loading.gif" lazyload alt="image-20230525221457199"></p>
+<p><img src="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/image-20230525221717485.png" srcset="/img/loading.gif" lazyload alt="image-20230525221717485"></p>
+<p>之前我们已经了解过了关于文件系统读写文件的基本流程，用户进程发起读写请求，然后陷入内核态，先查询page cache是否有要操作的页面，如果有直接进行读写操作，如果没有就调用指定的读写函数到磁盘中，然后将新页面缓存在page cache中。</p>
+<h3 id="I-O模式"><a href="#I-O模式" class="headerlink" title="I/O模式"></a>I/O模式</h3><blockquote>
+<p>这一块内容来自<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000038700641"><strong>Linux I/O 原理和 Zero-copy 技术全面揭秘</strong></a></p>
+</blockquote>
+<p>I/O模式一般有三种：</p>
+<ul>
+<li>程序控制I/O</li>
+<li>中断驱动I/O</li>
+<li>DMA I/O</li>
+</ul>
+<h4 id="程序控制I-O"><a href="#程序控制I-O" class="headerlink" title="程序控制I/O"></a>程序控制I/O</h4><p>这是最简单的一种 I/O 模式，也叫忙等待或者轮询：用户通过发起一个系统调用，陷入内核态，内核将系统调用翻译成一个对应设备驱动程序的过程调用，接着设备驱动程序会启动 I/O 不断循环去检查该设备，看看是否已经就绪，一般通过返回码来表示，I/O 结束之后，设备驱动程序会把数据送到指定的地方并返回，切回用户态。</p>
+<p>这种I/O也叫做blocking I/O model，如图：</p>
+<p><img src="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/image-20230526204204341.png" srcset="/img/loading.gif" lazyload alt="image-20230526204204341"></p>
+<h4 id="中断驱动I-O"><a href="#中断驱动I-O" class="headerlink" title="中断驱动I/O"></a>中断驱动I/O</h4><p>前面那个I/O的缺点是，当执行I/O操作的时候，cpu无法执行其他的事情，一直不断的询问I/O是否完成，这就造成了cpu资源的严重浪费，所以现在有一个中断驱动的I/O来改善这种情况，当操作系统发起一个I/O后，cpu不会一直去询问是否数据ready完成，而是直接去执行其他的动作，当数据准备完成后，设备控制器会产生一个外部中断来通知cpu，表示数据已经准备完成，然后cpu响应中断将数据copy到内存中。</p>
+<p><img src="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/view.png" srcset="/img/loading.gif" lazyload alt="preview"></p>
+<p>流程如下：</p>
+<ol>
+<li>用户进程发起一个 <code>read()</code> 系统调用读取磁盘文件，陷入内核态并由其所在的 CPU 通过设备驱动程序向设备寄存器写入一个通知信号，告知设备控制器 (我们这里是磁盘控制器)要读取数据；</li>
+<li>磁盘控制器启动磁盘读取的过程，把数据从磁盘拷贝到磁盘控制器缓冲区里；</li>
+<li>完成拷贝之后磁盘控制器会通过总线发送一个中断信号到中断控制器，如果此时中断控制器手头还有正在处理的中断或者有一个和该中断信号同时到达的更高优先级的中断，则这个中断信号将被忽略，而磁盘控制器会在后面持续发送中断信号直至中断控制器受理；</li>
+<li>中断控制器收到磁盘控制器的中断信号之后会通过地址总线存入一个磁盘设备的编号，表示这次中断需要关注的设备是磁盘；</li>
+<li>中断控制器向 CPU 置起一个磁盘中断信号；</li>
+<li>CPU 收到中断信号之后停止当前的工作，把当前的 PC/PSW 等寄存器压入堆栈保存现场，然后从地址总线取出设备编号，通过编号找到中断向量所包含的中断服务的入口地址，压入 PC 寄存器，开始运行磁盘中断服务，把数据从磁盘控制器的缓冲区拷贝到主存里的内核缓冲区；</li>
+<li>最后 CPU 再把数据从内核缓冲区拷贝到用户缓冲区，完成读取操作，<code>read()</code> 返回，切换回用户态。</li>
+</ol>
+<h4 id="DMA-I-O"><a href="#DMA-I-O" class="headerlink" title="DMA I/O"></a>DMA I/O</h4><p>并发系统的性能高低究其根本，是取决于如何对 CPU 资源的高效调度和使用，而回头看前面的中断驱动 I/O 模式的流程，可以发现第 6、7 步的数据拷贝工作都是由 CPU 亲自完成的，也就是在这两次数据拷贝阶段中 CPU 是完全被占用而不能处理其他工作的，那么这里明显是有优化空间的；第 7 步的数据拷贝是从内核缓冲区到用户缓冲区，都是在主存里，所以这一步只能由 CPU 亲自完成，但是第 6 步的数据拷贝，是从磁盘控制器的缓冲区到主存，是两个设备之间的数据传输，这一步并非一定要 CPU 来完成，可以借助 DMA 来完成，减轻 CPU 的负担。</p>
+<p>DMA 全称是 Direct Memory Access，也即直接存储器存取，是一种用来提供在外设和存储器之间或者存储器和存储器之间的高速数据传输。整个过程无须 CPU 参与，数据直接通过 DMA 控制器进行快速地移动拷贝，节省 CPU 的资源去做其他工作。</p>
+<p>目前，大部分的计算机都配备了 DMA 控制器，而 DMA 技术也支持大部分的外设和存储器。借助于 DMA 机制，计算机的 I/O 过程就能更加高效：</p>
+<p><img src="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/view-16851069947733.png" srcset="/img/loading.gif" lazyload alt="preview"></p>
+<p>DMA 控制器内部包含若干个可以被 CPU 读写的寄存器：一个主存地址寄存器 MAR（存放要交换数据的主存地址）、一个外设地址寄存器 ADR（存放 I/O 设备的设备码，或者是设备信息存储区的寻址信息）、一个字节数寄存器 WC（对传送数据的总字数进行统计）、和一个或多个控制寄存器。</p>
+<ol>
+<li>用户进程发起一个 <code>read()</code> 系统调用读取磁盘文件，陷入内核态并由其所在的 CPU 通过设置 DMA 控制器的寄存器对它进行编程：把内核缓冲区和磁盘文件的地址分别写入 MAR 和 ADR 寄存器，然后把期望读取的字节数写入 WC 寄存器，启动 DMA 控制器；</li>
+<li>DMA 控制器根据 ADR 寄存器里的信息知道这次 I/O 需要读取的外设是磁盘的某个地址，便向磁盘控制器发出一个命令，通知它从磁盘读取数据到其内部的缓冲区里；</li>
+<li>磁盘控制器启动磁盘读取的过程，把数据从磁盘拷贝到磁盘控制器缓冲区里，并对缓冲区内数据的校验和进行检验，如果数据是有效的，那么 DMA 就可以开始了；</li>
+<li>DMA 控制器通过总线向磁盘控制器发出一个读请求信号从而发起 DMA 传输，这个信号和前面的中断驱动 I/O 小节里 CPU 发给磁盘控制器的读请求是一样的，它并不知道或者并不关心这个读请求是来自 CPU 还是 DMA 控制器；</li>
+<li>紧接着 DMA 控制器将引导磁盘控制器将数据传输到 MAR 寄存器里的地址，也就是内核缓冲区；</li>
+<li>数据传输完成之后，返回一个 ack 给 DMA 控制器，WC 寄存器里的值会减去相应的数据长度，如果 WC 还不为 0，则重复第 4 步到第 6 步，一直到 WC 里的字节数等于 0；</li>
+<li>收到 ack 信号的 DMA 控制器会通过总线发送一个中断信号到中断控制器，如果此时中断控制器手头还有正在处理的中断或者有一个和该中断信号同时到达的更高优先级的中断，则这个中断信号将被忽略，而 DMA 控制器会在后面持续发送中断信号直至中断控制器受理；</li>
+<li>中断控制器收到磁盘控制器的中断信号之后会通过地址总线存入一个主存设备的编号，表示这次中断需要关注的设备是主存；</li>
+<li>中断控制器向 CPU 置起一个 DMA 中断的信号；</li>
+<li>CPU 收到中断信号之后停止当前的工作，把当前的 PC/PSW 等寄存器压入堆栈保存现场，然后从地址总线取出设备编号，通过编号找到中断向量所包含的中断服务的入口地址，压入 PC 寄存器，开始运行 DMA 中断服务，把数据从内核缓冲区拷贝到用户缓冲区，完成读取操作，<code>read()</code> 返回，切换回用户态。</li>
+</ol>
+<h3 id="零拷贝"><a href="#零拷贝" class="headerlink" title="零拷贝"></a>零拷贝</h3><h2 id="字符设备驱动"><a href="#字符设备驱动" class="headerlink" title="字符设备驱动"></a>字符设备驱动</h2><p>参考资料：</p>
+<p><a target="_blank" rel="noopener" href="https://ty-chen.github.io/linux-kernel-char-device/">字符设备驱动</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/shornado/mybook/blob/master/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3_%E5%AE%8B%E5%AE%9D%E5%8D%8E.pdf">linux设备驱动开发详解.pdf–宋宝华</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/482801096">玩转linux内核–字符设备驱动架构</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/chen-farsight/p/6155518.html#unit1">https://www.cnblogs.com/chen-farsight/p/6155518.html#unit1</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_45905650/article/details/121459749">https://blog.csdn.net/weixin_45905650/article/details/121459749</a></p>
+<h3 id="1-什么是字符设备"><a href="#1-什么是字符设备" class="headerlink" title="1. 什么是字符设备"></a>1. 什么是字符设备</h3><p>linux系统将设备分为三大类，字符设备、块设备、网络设备。常见的字符设备包括鼠标、键盘等。</p>
+<p>当我们编写字符设备驱动的时候，其主要工作是添加、初始化、删除cdev结构体，申请、释放设备号，填充file_operations结构体中的功能函数，比如open()、read()、write()、close()等。当我们创建一个字符设备时，一般会在/dev目录下生成一个设备文件，Linux用户层的程序就可以通过这个设备文件来操作这个字符设备。</p>
+<h3 id="2-字符设备驱动相关结构"><a href="#2-字符设备驱动相关结构" class="headerlink" title="2. 字符设备驱动相关结构"></a>2. 字符设备驱动相关结构</h3><p><img src="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/v2-e14e59d101071b1ff39d9854bd248d9b_r.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h4 id="cdev"><a href="#cdev" class="headerlink" title="cdev"></a>cdev</h4><p>在Linux内核中，使用cdev结构体来描述一个字符设备，cdev结构体在/include/linux/cdev.h中定义。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">cdev</span> &#123;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kobject</span> <span class="hljs-title">kobj</span>;</span>                  <span class="hljs-comment">//内嵌的内核对象.</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">module</span> *<span class="hljs-title">owner</span>;</span>                 <span class="hljs-comment">//该字符设备所在的内核模块的对象指针.</span><br>    <span class="hljs-type">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file_operations</span> *<span class="hljs-title">ops</span>;</span>    <span class="hljs-comment">//该结构描述了字符设备所能实现的方法，是极为关键的一个结构体.</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span> <span class="hljs-title">list</span>;</span>                <span class="hljs-comment">//用来将已经向内核注册的所有字符设备形成链表.</span><br>    <span class="hljs-type">dev_t</span> dev;                            <span class="hljs-comment">//字符设备的设备号，由主设备号和次设备号构成.</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> count;                   <span class="hljs-comment">//隶属于同一主设备号的次设备号的个数.</span><br>&#125; __randomize_layout;<br></code></pre></td></tr></table></figure>
+
+<p>其中的dev_t 定义了设备号，这是一个32位类型的数，高12位代表的是主设备号，低20位是次设别号，主设备号用来区分设备类型，次设备号用来区分同类型的不同设备。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C">MAJOR(dev)  <span class="hljs-comment">/* 从dev_t中获取主设备号 */</span><br>MINOR(dev)  <span class="hljs-comment">/* 从dev_t中获取次设备号 */</span><br>MKDEV(ma,mi)  <span class="hljs-comment">/* 通过主设备号ma和次设备号mi生成dev_t */</span><br></code></pre></td></tr></table></figure>
+
+<p>所有的字符串设别cdev结构都在cdev_map变量中保存，能够根据设备号快速获取cdev。</p>
+<h4 id="file-operations"><a href="#file-operations" class="headerlink" title="file_operations"></a>file_operations</h4><p>这个是驱动程序的核心内容，它定义了字符串设备驱动提供给VFS虚拟文件系统的接口函数。当用户程序在用户态调用相关的系统调用时，linux就会调用这个结构中对应的函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file_operations</span> &#123;</span><br>　　<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">module</span> *<span class="hljs-title">owner</span>;</span>　　<br>　　　　<span class="hljs-comment">/* 模块拥有者，一般为THIS MODULE */</span><br>　　<span class="hljs-type">ssize_t</span> (*read) (<span class="hljs-keyword">struct</span> file *, <span class="hljs-type">char</span> __user *, <span class="hljs-type">size_t</span>, <span class="hljs-type">loff_t</span> *);　　<br>　　　　<span class="hljs-comment">/* 从设备中读取数据，成功时返回读取的字节数，出错返回负值 */</span><br>　　<span class="hljs-type">ssize_t</span> (*write) (<span class="hljs-keyword">struct</span> file *, <span class="hljs-type">const</span> <span class="hljs-type">char</span> __user *, <span class="hljs-type">size_t</span>, <span class="hljs-type">loff_t</span> *);　　　<br>　　　　<span class="hljs-comment">/* 向设备发送数据，成功时该函数返回写入字节数。若未被实现，用户调层用write()时系统将返回 -EINVAL*/</span><br>　　<span class="hljs-type">int</span> (*mmap) (<span class="hljs-keyword">struct</span> file *, <span class="hljs-keyword">struct</span> vm_area_struct *);　　<br>　　　　<span class="hljs-comment">/* 将设备内存映射内核空间进程内存中，若未实现，用户层调用mmap()系统将返回 -ENODEV */</span><br>　　<span class="hljs-type">long</span> (*unlocked_ioctl)(<span class="hljs-keyword">struct</span> file *filp, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> cmd, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> arg);　　<br>　　　　<span class="hljs-comment">/* 提供设备相关控制命令（读写设备参数、状态，控制设备进行读写...）的实现，当调用成功时返回一个非负值 */</span><br>　　<span class="hljs-type">int</span> (*open) (<span class="hljs-keyword">struct</span> inode *, <span class="hljs-keyword">struct</span> file *);　　<br>　　　　<span class="hljs-comment">/* 打开设备 */</span><br>　　<span class="hljs-type">int</span> (*release) (<span class="hljs-keyword">struct</span> inode *, <span class="hljs-keyword">struct</span> file *);　　<br>　　　　<span class="hljs-comment">/* 关闭设备 */</span><br>　　<span class="hljs-type">int</span> (*flush) (<span class="hljs-keyword">struct</span> file *, <span class="hljs-type">fl_owner_t</span> id);　　<br>　　　　<span class="hljs-comment">/* 刷新设备 */</span><br>　　<span class="hljs-type">loff_t</span> (*llseek) (<span class="hljs-keyword">struct</span> file *, <span class="hljs-type">loff_t</span>, <span class="hljs-type">int</span>);　　<br>　　　　<span class="hljs-comment">/* 用来修改文件读写位置，并将新位置返回，出错时返回一个负值 */</span><br>　　<span class="hljs-type">int</span> (*fasync) (<span class="hljs-type">int</span>, <span class="hljs-keyword">struct</span> file *, <span class="hljs-type">int</span>);　　<br>　　　　<span class="hljs-comment">/* 通知设备 FASYNC 标志发生变化 */</span><br>　　<span class="hljs-type">unsigned</span> <span class="hljs-title function_">int</span> <span class="hljs-params">(*poll)</span> <span class="hljs-params">(<span class="hljs-keyword">struct</span> file *, <span class="hljs-keyword">struct</span> poll_table_struct *)</span>;　　<br>　　　　<span class="hljs-comment">/* POLL机制，用于询问设备是否可以被非阻塞地立即读写。当询问的条件未被触发时，用户空间进行select()和poll()系统调用将引起进程阻塞 */</span><br>　　...<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="驱动初始化"><a href="#驱动初始化" class="headerlink" title="驱动初始化"></a>驱动初始化</h4><p>基本流程是：</p>
+<ul>
+<li><p>申请一个cdev结构</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">struct</span> cdev *<span class="hljs-title function_">cdev_alloc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;　　<br><span class="hljs-comment">/* 返回值：</span><br><span class="hljs-comment">　　　　成功 cdev 对象首地址</span><br><span class="hljs-comment">　　　　失败：NULL */</span><br></code></pre></td></tr></table></figure></li>
+<li><p>申请一个设备号</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">alloc_chrdev_region</span><span class="hljs-params">(<span class="hljs-type">dev_t</span> *dev, <span class="hljs-type">unsigned</span> baseminor, <span class="hljs-type">unsigned</span> count, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *name)</span>;<br><span class="hljs-comment">/* 参数：</span><br><span class="hljs-comment">　　　　dev_t *dev - 用于保存分配到的第一个设备号（起始）</span><br><span class="hljs-comment">　　　　unsigned baseminor - 起始次设备号</span><br><span class="hljs-comment">　　　　unsigned count - 要分配设备号的数量</span><br><span class="hljs-comment">　　　　const char *name - 设备名</span><br><span class="hljs-comment">   返回值：</span><br><span class="hljs-comment">　　　　成功：0</span><br><span class="hljs-comment">　　　　失败：负数（绝对值是错误码）*/</span><br></code></pre></td></tr></table></figure></li>
+<li><p>初始化这个cdev</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">cdev_init</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> cdev *p, <span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> file_operations *p)</span>;　　<br><span class="hljs-comment">/* 参数：</span><br><span class="hljs-comment">　　　　struct cdev *p - 被初始化的 cdev对象</span><br><span class="hljs-comment">　　　　const struct file_operations *fops - 字符设备操作方法集 */</span><br></code></pre></td></tr></table></figure></li>
+<li><p>注册这个cdev</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">cdev_add</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> cdev *p, <span class="hljs-type">dev_t</span> dev, <span class="hljs-type">unsigned</span> count)</span>;<br><span class="hljs-comment">/* 参数：</span><br><span class="hljs-comment">　　　　struct cdev *p - 被注册的cdev对象</span><br><span class="hljs-comment">　　　　dev_t dev - 设备的第一个设备号</span><br><span class="hljs-comment">　　　　unsigned - 这个设备连续的次设备号数量</span><br><span class="hljs-comment">   返回值：</span><br><span class="hljs-comment">　　　　成功：0</span><br><span class="hljs-comment">　　　　失败：负数（绝对值是错误码）*/</span><br></code></pre></td></tr></table></figure></li>
+<li><p>创建设备文件（在/dev 文件夹下创建一个文件用来表示一个字符设备）</p>
+<p>利用cat /proc/devices查看申请到的设备名，设备号。</p>
+<ol>
+<li>使用mknod手工创建：mknod filename type major minor</li>
+<li>自动创建设备节点:利用udev（mdev）来实现设备文件的自动创建，首先应保证支持udev（mdev），由busybox配置。在驱动初始化代码里调用class_create为该设备创建一个class，再为每个设备调用device_create创建对应的设备。</li>
+</ol>
+<p>详细解析见： <a target="_blank" rel="noopener" href="http://www.cnblogs.com/chen-farsight/p/6154941.html">Linux设备文件自动生成</a></p>
+</li>
+</ul>
+<h4 id="简单案例"><a href="#简单案例" class="headerlink" title="简单案例"></a>简单案例</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/init.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/module.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/kernel.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/cdev.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/fs.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/errno.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;asm/current.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/sched.h&gt;</span></span><br>MODULE_LICENSE(<span class="hljs-string">&quot;GPL&quot;</span>);<br><span class="hljs-type">static</span> <span class="hljs-type">int</span> major = <span class="hljs-number">0</span>; <br><span class="hljs-type">static</span> <span class="hljs-type">int</span> minor = <span class="hljs-number">0</span>; <br><span class="hljs-type">const</span> <span class="hljs-type">int</span> count = <span class="hljs-number">3</span>; <br><span class="hljs-meta">#<span class="hljs-keyword">define</span> DEVNAME <span class="hljs-string">&quot;demo&quot;</span> </span><br><span class="hljs-type">static</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">cdev</span> *<span class="hljs-title">demop</span> =</span> <span class="hljs-literal">NULL</span>; <br><span class="hljs-comment">//打开设备 </span><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">demo_open</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> inode *inode, <span class="hljs-keyword">struct</span> file *filp)</span> <br>&#123; <br>　　<span class="hljs-comment">//get command and pid </span><br>　　printk(KERN_INFO <span class="hljs-string">&quot;(%s:pid=%d), %s : %s : %d\n&quot;</span>, current-&gt;comm, current-&gt;pid, __FILE__, __func__, __LINE__); <br>　　<span class="hljs-comment">//get major and minor from inode </span><br>　　printk(KERN_INFO <span class="hljs-string">&quot;(major=%d, minor=%d), %s : %s : %d\n&quot;</span>, imajor(inode), iminor(inode), __FILE__, __func__, __LINE__); <br>　　<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>; <br>&#125; <br><span class="hljs-comment">//关闭设备 </span><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">demo_release</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> inode *inode, <span class="hljs-keyword">struct</span> file *filp)</span> <br>&#123; <br>　　<span class="hljs-comment">//get command and pid </span><br>　　printk(KERN_INFO <span class="hljs-string">&quot;(%s:pid=%d), %s : %s : %d\n&quot;</span>, current-&gt;comm, current-&gt;pid, __FILE__, __func__, __LINE__); <br>　　<span class="hljs-comment">//get major and minor from inode </span><br>　　printk(KERN_INFO <span class="hljs-string">&quot;(major=%d, minor=%d), %s : %s : %d\n&quot;</span>, imajor(inode), iminor(inode), __FILE__, __func__, __LINE__); <br>　　<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>; <br>&#125; <br><span class="hljs-comment">//读设备</span><br><span class="hljs-type">static</span> <span class="hljs-type">ssize_t</span> <span class="hljs-title function_">demo_read</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> file *filp, <span class="hljs-type">char</span> __user *buf, <span class="hljs-type">size_t</span> size, <span class="hljs-type">loff_t</span> *offset)</span> <br>&#123;<br>　　<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">inode</span> *<span class="hljs-title">inode</span> =</span> filp-&gt;f_path.dentry-&gt;d_inode; <br>　　<span class="hljs-comment">//get command and pid </span><br>　　printk(KERN_INFO <span class="hljs-string">&quot;(%s:pid=%d), %s : %s : %d\n&quot;</span>, current-&gt;comm, current-&gt;pid, __FILE__, __func__, __LINE__); <br>　　<span class="hljs-comment">//get major and minor from inode </span><br>　　printk(KERN_INFO <span class="hljs-string">&quot;(major=%d, minor=%d), %s : %s : %d\n&quot;</span>, imajor(inode), iminor(inode), __FILE__, __func__, __LINE__); <br>　　<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>; <br>&#125; <br><span class="hljs-comment">//写设备 </span><br><span class="hljs-type">static</span> <span class="hljs-type">ssize_t</span> <span class="hljs-title function_">demo_write</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> file *filp, <span class="hljs-type">const</span> <span class="hljs-type">char</span> __user *buf, <span class="hljs-type">size_t</span> size, <span class="hljs-type">loff_t</span> *offset)</span> <br>&#123; <br>　　<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">inode</span> *<span class="hljs-title">inode</span> =</span> filp-&gt;f_path.dentry-&gt;d_inode; <br>　　<span class="hljs-comment">//get command and pid </span><br>　　printk(KERN_INFO <span class="hljs-string">&quot;(%s:pid=%d), %s : %s : %d\n&quot;</span>, current-&gt;comm, current-&gt;pid, __FILE__, __func__, __LINE__); <br>　　<span class="hljs-comment">//get major and minor from inode </span><br>　　printk(KERN_INFO <span class="hljs-string">&quot;(major=%d, minor=%d), %s : %s : %d\n&quot;</span>, imajor(inode), iminor(inode), __FILE__, __func__, __LINE__); <br>　　<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>; <br>&#125; <br><span class="hljs-comment">//操作方法集 </span><br><span class="hljs-type">static</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file_operations</span> <span class="hljs-title">fops</span> =</span> &#123;<br>　　.owner = THIS_MODULE, .open = demo_open, <br>　　.release= demo_release, <br>　　.read = demo_read, <br>　　.write = demo_write, <br>&#125;; <br><span class="hljs-comment">//cdev设备模块初始化 </span><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> __init <span class="hljs-title function_">demo_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> <br>&#123; <br>　　<span class="hljs-type">dev_t</span> devnum; <span class="hljs-type">int</span> ret; <br>　　<span class="hljs-comment">//get command and pid </span><br>　　printk(KERN_INFO <span class="hljs-string">&quot;(%s:pid=%d), %s : %s : %d\n&quot;</span>, current-&gt;comm, current-&gt;pid, __FILE__, __func__, __LINE__); <br>　　<span class="hljs-comment">//1. alloc cdev obj </span><br>　　demop = cdev_alloc(); <br>　　<span class="hljs-keyword">if</span>(<span class="hljs-literal">NULL</span> == demop) &#123; <br>　　　　<span class="hljs-keyword">return</span> -ENOMEM; <br>　　&#125;<br>    <span class="hljs-comment">//2. init cdev obj</span><br>    cdev_init(demop, &amp;fops);<br>    ret = alloc_chrdev_region(&amp;devnum, minor, count, DEVNAME);<br>    <span class="hljs-keyword">if</span>(ret)&#123;<br>        <span class="hljs-keyword">goto</span> ERR_STEP;<br>    &#125;<br>    major = MAJOR(devnum);<br>    <span class="hljs-comment">//3. register cdev obj</span><br>    ret = cdev_add(demop, devnum, count);<br>    <span class="hljs-keyword">if</span>(ret)&#123;<br>        <span class="hljs-keyword">goto</span> ERR_STEP1;<br>    &#125;<br>    <span class="hljs-comment">//get command and pid</span><br>    printk(KERN_INFO <span class="hljs-string">&quot;(%s:pid=%d), %s : %s : %d - ok.\n&quot;</span>, current-&gt;comm, current-&gt;pid, __FILE__, __func__, __LINE__);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br><br>ERR_STEP1:<br>    unregister_chrdev_region(devnum, count);<br><br>ERR_STEP:<br>    cdev_del(demop);<br>    <span class="hljs-comment">//get command and pid</span><br>    printk(KERN_INFO <span class="hljs-string">&quot;(%s:pid=%d), %s : %s : %d - fail.\n&quot;</span>, current-&gt;comm, current-&gt;pid, __FILE__, __func__, __LINE__);<br>    <span class="hljs-keyword">return</span> ret;<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> __exit <span class="hljs-title function_">demo_exit</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>    <span class="hljs-comment">//get command and pid</span><br>    printk(KERN_INFO <span class="hljs-string">&quot;(%s:pid=%d), %s : %s : %d - leave.\n&quot;</span>, current-&gt;comm, current-&gt;pid, __FILE__, __func__, __LINE__);<br>    unregister_chrdev_region(MKDEV(major, minor), count);<br>    cdev_del(demop);<br>&#125;<br><br>module_init(demo_init);<br>module_exit(demo_exit);<br>复制代码<br> test.c<br><br>复制代码<br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/types.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/stat.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;fcntl.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> num, <span class="hljs-type">char</span> *arg[])</span><br>&#123;<br>    <span class="hljs-keyword">if</span>(<span class="hljs-number">2</span> != num)&#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Usage: %s /dev/devfile\n&quot;</span>, arg[<span class="hljs-number">0</span>]);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br>    <span class="hljs-type">int</span> fd = open(arg[<span class="hljs-number">1</span>], O_RDWR);<br>    <span class="hljs-keyword">if</span>(<span class="hljs-number">0</span> &gt; fd)&#123;<br>        perror(<span class="hljs-string">&quot;open&quot;</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br>    getchar();<br>    <span class="hljs-type">int</span> ret = read(fd, <span class="hljs-number">0x321</span>, <span class="hljs-number">0</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;read: ret = %d.\n&quot;</span>, ret);<br>    getchar();<br>    ret = write(fd, <span class="hljs-number">0x123</span>, <span class="hljs-number">0</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;write: ret = %d.\n&quot;</span>, ret);<br>    getchar();<br>    close(fd);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-加载和卸载设备"><a href="#3-加载和卸载设备" class="headerlink" title="3. 加载和卸载设备"></a>3. 加载和卸载设备</h3><p>使用insmod 命令来加载模块，然后就会执行module_init()函数，这个函数会调用驱动程序中的init函数，来初始化这个驱动，对于设别节点的创建，可以使用mknod手动创建，或者使用自动创建也行。这样就完成了驱动程序加载到内核中了。</p>
+<h3 id="4-打开字符设备"><a href="#4-打开字符设备" class="headerlink" title="4. 打开字符设备"></a>4. 打开字符设备</h3><p>在linux中万物皆是文件，上面我们说了当设备驱动程序加载完成后并在dev文件夹下常见一个文件，用来表示这个设备。也就是加载完ko文件后，我们需要这个dev文件夹下面的这个文件，才能通过文件系统的接口对这个设备进行操作。</p>
+<p>在执行mknod的时候，会调用一个系统调用，然后调用user_path_create()位该设备文件创建一个dentry，然后会调用<code>vfs_mknod()</code>函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">vfs_mknod</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> inode *dir, <span class="hljs-keyword">struct</span> dentry *dentry, <span class="hljs-type">umode_t</span> mode, <span class="hljs-type">dev_t</span> dev)</span><br>&#123;<br>......<br>    error = dir-&gt;i_op-&gt;mknod(dir, dentry, mode, dev);<br>......<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>对于<code>/dev</code>目录下的设备驱动来说，他们都是属于<code>devtmpfs</code>文件系统，这个文件系统叫做设备驱动临时文件系统。当调用<code>dir-&gt;i_op-&gt;mknod</code>函数时，会最终调用<code>init_special_inode()</code>函数，对于devtmpfs的inode是比较特殊的，这个inode可以关联字符设备、块设备、FIFO 文件、Socket 等。这里的inode中的file_operations变量指向一个def_chr_fops,这个结构中只有一个open函数，此inode中还包含了一个i_rdev表示指向这个设备的dev_t，通过这个设别号dev_t我们就能够找到刚才注册的cdev了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">init_special_inode</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> inode *inode, <span class="hljs-type">umode_t</span> mode, <span class="hljs-type">dev_t</span> rdev)</span><br>&#123;<br>    inode-&gt;i_mode = mode;<br>    <span class="hljs-keyword">if</span> (S_ISCHR(mode)) &#123;<br>        inode-&gt;i_fop = &amp;def_chr_fops;   <span class="hljs-comment">// 字符设备</span><br>        inode-&gt;i_rdev = rdev;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (S_ISBLK(mode)) &#123;<br>        inode-&gt;i_fop = &amp;def_blk_fops;<br>        inode-&gt;i_rdev = rdev;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (S_ISFIFO(mode))<br>        inode-&gt;i_fop = &amp;pipefifo_fops;<br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (S_ISSOCK(mode))<br>        ;  <span class="hljs-comment">/* leave it no_open_fops */</span><br>    <span class="hljs-keyword">else</span><br>        printk(KERN_DEBUG <span class="hljs-string">&quot;init_special_inode: bogus i_mode (%o) for&quot;</span><br>                  <span class="hljs-string">&quot; inode %s:%lu\n&quot;</span>, mode, inode-&gt;i_sb-&gt;s_id,<br>                  inode-&gt;i_ino);    <br>&#125;<br><br><span class="hljs-type">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file_operations</span> <span class="hljs-title">def_chr_fops</span> =</span> &#123;<br>    .open = chrdev_open,<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>执行完成这个<code>mknod</code>指令后，其实就是将这个dev文件夹下的对应的设备文件在内存中创建了一个对应的<code>inode</code>和<code>dentry</code>结构，只是对于<code>inode</code>的<code>file_operations</code>还没有具体绑定。</p>
+<p>接下来我们打开这个设备，打开设备和操作普通文件一样，也会放回一个文件描述符fd，然后在内存中创建一个对应的<code>struct file</code>实例，并将file和dentry和inode绑定，在进程中调用open函数，最终会调用到inode中的open函数，最后调用到<code>chrdev_open</code>(这个是对于字符设备)。</p>
+<p>对于chrdev_open函数，基本逻辑如下：</p>
+<ul>
+<li>调用<code>kobj_lookup()</code>，通过设备号<code>i_cdev</code>关联对应的设备驱动程序</li>
+<li>调用<code>fops_get()</code>将设备驱动程序自己定义的文件操作<code>p-&gt;ops</code>赋值给<code>fops</code></li>
+<li>调用设备驱动程序的 <code>file_operations</code> 的 <code>open()</code> 函数真正打开设备。对于打印机，调用的是 <code>lp_open()</code>。对于鼠标调用的是 <code>input_proc_devices_open()</code>，最终会调用到 <code>logibm_open()</code>。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Called every time a character special file is opened</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">chrdev_open</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> inode *inode, <span class="hljs-keyword">struct</span> file *filp)</span><br>&#123;<br>    <span class="hljs-type">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file_operations</span> *<span class="hljs-title">fops</span>;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">cdev</span> *<span class="hljs-title">p</span>;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">cdev</span> *<span class="hljs-title">new</span> =</span> <span class="hljs-literal">NULL</span>;<br>......<br>    p = inode-&gt;i_cdev;<br>......<br>    kobj = kobj_lookup(cdev_map, inode-&gt;i_rdev, &amp;idx);<br>......      <br>    fops = fops_get(p-&gt;ops);<br>......<br>    replace_fops(filp, fops);<br>    <span class="hljs-keyword">if</span> (filp-&gt;f_op-&gt;open) &#123;<br>        ret = filp-&gt;f_op-&gt;open(inode, filp);<br>......<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>以上的流程用一张极客时间的图总结</p>
+</blockquote>
+<p><img src="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/2e29767e84b299324ea7fc524a3dcee6.jpeg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<blockquote>
+<p>对于写入操作基本类似，只不过在读写的时候，要注意数据从内核态复制到用户态以及数据从用户态复制到内核态。</p>
+</blockquote>
+<h2 id="块设备驱动"><a href="#块设备驱动" class="headerlink" title="块设备驱动"></a>块设备驱动</h2>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Linux/">#Linux</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Linux的I/O与驱动</div>
+      <div>http://example.com/2023/06/13/Linux下的IO/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>bollcode</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年6月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/06/13/Linux%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84/" title="Linux-mmap内存映射">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Linux-mmap内存映射</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/04/21/%E4%B8%AD%E6%96%AD/" title="linux中断">
+                        <span class="hidden-mobile">linux中断</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,714 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/basketball.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="bollcode">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Linux内核启动与初始化BIOS到bootloader程序当我们按下电源的时候，cpu中的cs和eip寄存器就会装载固定的值，这个其实就是BIOS程序的所在的物理地址。BIOS叫做基本输入输出系统，主要是在用来加载引导程序，然后由引导程序加载内核镜像。  当进入BIOS程序的时候，cpu处于实模式下，程序可以任意的访问物理地址，寻址采用cs+eip方式进行寻址，cs代表段基址，eip表示段内偏移">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux内核启动与初始化">
+<meta property="og:url" content="http://example.com/2023/06/13/Linux%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Linux内核启动与初始化BIOS到bootloader程序当我们按下电源的时候，cpu中的cs和eip寄存器就会装载固定的值，这个其实就是BIOS程序的所在的物理地址。BIOS叫做基本输入输出系统，主要是在用来加载引导程序，然后由引导程序加载内核镜像。  当进入BIOS程序的时候，cpu处于实模式下，程序可以任意的访问物理地址，寻址采用cs+eip方式进行寻址，cs代表段基址，eip表示段内偏移">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/linux.jpg">
+<meta property="article:published_time" content="2023-06-13T14:17:40.024Z">
+<meta property="article:modified_time" content="2023-06-25T08:30:22.943Z">
+<meta property="article:author" content="bollcode">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/linux.jpg">
+  
+  
+  
+  <title>linux内核启动与初始化 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>bollcode</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="linux内核启动与初始化"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-06-13 22:17" pubdate>
+          2023年6月13日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          77 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">linux内核启动与初始化</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Linux内核启动与初始化"><a href="#Linux内核启动与初始化" class="headerlink" title="Linux内核启动与初始化"></a>Linux内核启动与初始化</h1><h2 id="BIOS到bootloader程序"><a href="#BIOS到bootloader程序" class="headerlink" title="BIOS到bootloader程序"></a>BIOS到bootloader程序</h2><p>当我们按下电源的时候，cpu中的cs和eip寄存器就会装载固定的值，这个其实就是BIOS程序的所在的物理地址。BIOS叫做基本输入输出系统，主要是在用来加载引导程序，然后由引导程序加载内核镜像。</p>
+<p><img src="/2023/06/13/Linux%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96/image-20230608164749115.png" srcset="/img/loading.gif" lazyload alt="image-20230608164749115"></p>
+<p>当进入BIOS程序的时候，cpu处于实模式下，程序可以任意的访问物理地址，寻址采用cs+eip方式进行寻址，cs代表段基址，eip表示段内偏移量。BIOS还负责初始化一些硬件设备，包括cpu、内存，同时初始化中断向量表，中断向量表位于最低端，里面装着BIOS的中断服务程序，对于bootloader的int13就是调用的bios中断服务程序控制磁盘的，但是它主要的功能就是加载位于MBR引导扇区的bootloader程序。</p>
+<p><strong>BIOS将会把位于位于磁盘第一扇区的bootloader程序读取到内存<code>0x7c00</code>地址处。</strong>后面会将其复制到0x90000处。</p>
+<h2 id="bootloader程序"><a href="#bootloader程序" class="headerlink" title="bootloader程序"></a>bootloader程序</h2><p>bootloader程序位于磁盘的第一个扇区，叫做引导扇区MBR，它负责将内核镜像加载到内存中来。bootloader会配合一些辅助代码进行加载内核。会将内核程序加载到0x100000处。</p>
+<p>bootloader会使用<code>int 13</code>(触发BIOS中断服务)指令从磁盘读入setup程序（辅助程序）和内核映像。然后跳转到setup程序并做好执行内核程序的准备，包括对内核映像的解压缩，解除压缩之后就将内核映像加载到了<code>0x100000</code>(1MB)处。BIOS进入bootloader时cpu处于实模式，在经过bootloader和setup程序后就会进行保护模式，如何进入保护模式呢？</p>
+<p>后面进入保护模式后，寻址采用段式寻址方式，有一个段描述符表GDT，其地址在GDTR寄存器中，段描述符中包含了关于段的访问权限（特权级检查）和段基址等信息。CS寄存器此时变成了段选择子，不再是段基址寄存器了，它的高13位表示段选择子，低3位标识CPL。</p>
+<p>当加载完内核程序之后，就会跳转到内核程序的入口去了，自此，cpu的控制器就交给了操作系统了。但是此时我们还没有开启分页模式。</p>
+<h2 id="内核运行与初始化"><a href="#内核运行与初始化" class="headerlink" title="内核运行与初始化"></a>内核运行与初始化</h2><p>bootloader程序将辅助程序setup和内核映像加载到了内核后，就开始进入了setup辅助程序的运行。这里我们将实模式转为保护模式，初始化IDT和GDT等工作，然后跳转到内核入口地址。</p>
+<p>在setup.s中初始化IDT中断描述符表和GDT全局描述符表，并将其地址存在IDTR和GDTR寄存器中。</p>
+<p>打开A20地址线，进入保护模式，此时的寻址范围为32地址线了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ASM">#boot/setup.s<br>mov ax，#0x0001！protected mode（PE）bit<br>lmsw ax！This is it！<br>jmpi 0，8！jmp offset 0 of segment 8（cs）<br></code></pre></td></tr></table></figure>
+
+<p>完成这些之后，就跳转到了内核的head.s程序中，head.s是进入内核main程序的最后一步，在head里面会初始化各个段寄存器，解压内核映像到0x100000处，完成临时内核页表的创建，打开分页模式（将页表地址存放在cr3寄存器中），跳转到main函数，进行下一步初始化。</p>
+<h3 id="内核初始化"><a href="#内核初始化" class="headerlink" title="内核初始化"></a>内核初始化</h3><p>前面我们从实模式进入到了保护模式，并开启了分页模式，接下来进入到了内核的main()中，先开始执行一些类初始化动作。</p>
+<p><code>start_kernel()</code>上来就会运行 <code>set_task_stack_end_magic(&amp;init_task)</code>创建初始进程。<code>init_task</code>的定义是 <code>struct task_struct init_task = INIT_TASK(init_task)</code>。它是系统创建的第一个进程，我们称为 <code>0 号进程</code>。<strong>这是唯一一个没有通过 <code>fork</code> 或者 <code>kernel_thread</code>产生的进程，是进程列表的第一个</strong>。</p>
+<p><code>init_task</code>是静态定义的一个进程，也就是说当内核被放入内存时，它就已经存在，它没有自己的用户空间，一直处于内核空间中运行，并且也只处于内核空间运行。<strong>0号进程用于包括内存、页表、必要数据结构、信号、调度器、硬件设备等的初始化。</strong>当它执行到最后（剩余初始化）时，将<code>start_kernel</code>中所有的初始化执行完成后，会在内核中启动一个<code>kernel_init</code>内核线程和一个<code>kthreadd</code>内核线程，<code>kernel_init</code>内核线程执行到最后会通过<code>execve</code>系统调用执行转变为我们所熟悉的<code>init</code>进程，而<code>kthreadd</code>内核线程是内核用于管理调度其他的内核线程的守护线程。在最后<code>init_task</code>将变成一个idle进程，用于在CPU没有进程运行时运行它，它在此时仅仅用于空转。</p>
+<h4 id="中断初始化-–-trap-init"><a href="#中断初始化-–-trap-init" class="headerlink" title="中断初始化 – trap_init()"></a>中断初始化 – trap_init()</h4><p>我们前面已经设置了中断向量表，但是中断描述符中并没有指向具体的中断服务函数，这里我们将设置中断向量表中的每一项对应的中断服务函数地址。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">trap_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>    <span class="hljs-type">int</span> i;<br>    <span class="hljs-comment">//设置系统的硬件中断 中断位于kernel/asm.s 或 system_call.s</span><br>    set_trap_gate(<span class="hljs-number">0</span>,÷_error);<span class="hljs-comment">//0中断，位于/kernel/asm.s 19行</span><br>    set_trap_gate(<span class="hljs-number">1</span>,&amp;debug);<br>    set_trap_gate(<span class="hljs-number">2</span>,&amp;nmi);<br>    set_system_gate(<span class="hljs-number">3</span>,&amp;int3);    <span class="hljs-comment">/* int3-5 can be called from all */</span><br>    set_system_gate(<span class="hljs-number">4</span>,&amp;overflow);<br>    set_system_gate(<span class="hljs-number">5</span>,&amp;bounds);<br>    set_trap_gate(<span class="hljs-number">6</span>,&amp;invalid_op);<br>    set_trap_gate(<span class="hljs-number">7</span>,&amp;device_not_available);<br>    set_trap_gate(<span class="hljs-number">8</span>,&amp;double_fault);<br>    set_trap_gate(<span class="hljs-number">9</span>,&amp;coprocessor_segment_overrun);<br>    set_trap_gate(<span class="hljs-number">10</span>,&amp;invalid_TSS);<br>    set_trap_gate(<span class="hljs-number">11</span>,&amp;segment_not_present);<br>    set_trap_gate(<span class="hljs-number">12</span>,&amp;stack_segment);<br>    set_trap_gate(<span class="hljs-number">13</span>,&amp;general_protection);<br>    set_trap_gate(<span class="hljs-number">14</span>,&amp;page_fault);<br>    set_trap_gate(<span class="hljs-number">15</span>,&amp;reserved);<br>    set_trap_gate(<span class="hljs-number">16</span>,&amp;coprocessor_error);<br>    <span class="hljs-keyword">for</span> (i=<span class="hljs-number">17</span>;i&lt;<span class="hljs-number">48</span>;i++)<br>        set_trap_gate(i,&amp;reserved);<br>    set_trap_gate(<span class="hljs-number">45</span>,&amp;irq13);<br>    outb_p(inb_p(<span class="hljs-number">0x21</span>)&amp;<span class="hljs-number">0xfb</span>,<span class="hljs-number">0x21</span>);<br>    outb(inb_p(<span class="hljs-number">0xA1</span>)&amp;<span class="hljs-number">0xdf</span>,<span class="hljs-number">0xA1</span>);<br>    set_trap_gate(<span class="hljs-number">39</span>,llel_interrupt);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="内存初始化–mm-init"><a href="#内存初始化–mm-init" class="headerlink" title="内存初始化–mm_init()"></a>内存初始化–mm_init()</h4><p>这个主要是内存相关的初始化内容，调用的函数功能基本如名字所示，主要进行了以下初始化设置：</p>
+<ul>
+<li><code>page_ext_init_flatmem()</code>和cgroup的初始化相关，该部分是docker技术的核心部分</li>
+<li><code>mem_init()</code>初始化内存管理的伙伴系统</li>
+<li><code>kmem_cache_init()</code>完成内核slub内存分配体系的初始化，相关的还有<code>buffer_init</code></li>
+<li><code>pgtable_init()</code>完成页表初始化，重新设置一个新的内核页表，并对相应的页表项进行设置，完成映射，包括页表锁<code>ptlock_init()</code>，</li>
+<li><code>vmalloc_init()</code>完成vmalloc的初始化</li>
+<li><code>ioremap_huge_init()</code> ioremap实现I/O内存资源由物理地址映射到虚拟地址空间，此处为其功能的初始化</li>
+<li><code>init_espfix_bsp()</code>和<code>pti_init()</code>完成PTI（page table isolation）的初始化</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Set up kernel memory allocators</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> __init <span class="hljs-title function_">mm_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * page_ext requires contiguous pages,</span><br><span class="hljs-comment">	 * bigger than MAX_ORDER unless SPARSEMEM.</span><br><span class="hljs-comment">	 */</span><br>	page_ext_init_flatmem();<br>	mem_init();<br>	kmem_cache_init();<br>	pgtable_init();<br>	vmalloc_init();<br>	ioremap_huge_init();<br>	<span class="hljs-comment">/* Should be run before the first non-init thread is created */</span><br>	init_espfix_bsp();<br>	<span class="hljs-comment">/* Should be run after espfix64 is set up. */</span><br>	pti_init();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="剩余初始化–rest-init"><a href="#剩余初始化–rest-init" class="headerlink" title="剩余初始化–rest_init()"></a>剩余初始化–rest_init()</h4><p><code>rest_init</code>是非常重要的一步，主要包括了区分内核态和用户态、初始化1号进程和初始化2号进程。</p>
+<p><img src="/2023/06/13/Linux%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96/linux%E5%86%85%E6%A0%B8%E5%88%9D%E5%A7%8B%E5%8C%96.png" srcset="/img/loading.gif" lazyload alt="linux内核初始化"></p>
+<h4 id="1号进程的初始化–init进程"><a href="#1号进程的初始化–init进程" class="headerlink" title="1号进程的初始化–init进程"></a>1号进程的初始化–init进程</h4><p>1号进程对于操作系统来说，这是他运行的第一个用户进程，采用的是<code>kernel_thread(kernel_init, NULL, CLONE_FS)</code>创建的，创建的进程的函数是<code>kernel_thread</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Create a kernel thread.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">pid_t</span> <span class="hljs-title function_">kernel_thread</span><span class="hljs-params">(<span class="hljs-type">int</span> (*fn)(<span class="hljs-type">void</span> *), <span class="hljs-type">void</span> *arg, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags)</span><br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kernel_clone_args</span> <span class="hljs-title">args</span> =</span> &#123;<br>        .flags        = ((flags | CLONE_VM | CLONE_UNTRACED) &amp; ~CSIGNAL),<br>        .exit_signal    = (flags &amp; CSIGNAL),<br>        .<span class="hljs-built_in">stack</span>        = (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)fn,<br>        .stack_size    = (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)arg,<br>    &#125;;<br><br>    <span class="hljs-keyword">return</span> _do_fork(&amp;args);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>kernel_init（）</code>为init线程的线程入口函数。在kernel_init()线程函数执行的最后，将启动第一个用户空间进程,核心代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (ramdisk_execute_command) <br>&#123; <br>    ret = run_init_process(ramdisk_execute_command);<br>    ...... <br>&#125;<br>...... <br><span class="hljs-keyword">if</span> (!try_to_run_init_process(<span class="hljs-string">&quot;/sbin/init&quot;</span>) || <br>    !try_to_run_init_process(<span class="hljs-string">&quot;/etc/init&quot;</span>)  || <br>    !try_to_run_init_process(<span class="hljs-string">&quot;/bin/init&quot;</span>)  || <br>    !try_to_run_init_process(<span class="hljs-string">&quot;/bin/sh&quot;</span>)) <br>   <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这就可以看出，1号线程运行的是一个文件进程，他其实调用的是<code>do_execve()</code>函数,这个函数执行到最后就是去加载<code>elf</code>格式的文件,当将一个文件加载进来内存之后就调用<code>start_thread</code>;</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">run_init_process</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *init_filename)</span><br>&#123; <br>    argv_init[<span class="hljs-number">0</span>] = init_filename; <br>    <span class="hljs-keyword">return</span> do_execve(getname_kernel(init_filename), <br>                     (<span class="hljs-type">const</span> <span class="hljs-type">char</span> __user *<span class="hljs-type">const</span> __user *)argv_init, <br>                     (<span class="hljs-type">const</span> <span class="hljs-type">char</span> __user *<span class="hljs-type">const</span> __user *)envp_init);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">start_thread</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> pt_regs *regs, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> new_ip, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> new_sp)</span><br>&#123;<br>    set_user_gs(regs, <span class="hljs-number">0</span>);<br>    regs-&gt;fs  = <span class="hljs-number">0</span>;<br>    regs-&gt;ds  = __USER_DS;<br>    regs-&gt;es  = __USER_DS;<br>    regs-&gt;ss  = __USER_DS;<br>    regs-&gt;cs  = __USER_CS;<br>    regs-&gt;ip  = new_ip;<br>    regs-&gt;sp  = new_sp;<br>    regs-&gt;flags  = X86_EFLAGS_IF;<br>    force_iret();<br>&#125;<br>EXPORT_SYMBOL_GPL(start_thread);<br></code></pre></td></tr></table></figure>
+
+<p>这个函数很重要，就是从内核态切换为用户态，然后运行创建好的线程，上面的<code>force_iret()</code>就是相当于从中断返回。</p>
+<h4 id="2号线程的初始化–kthreadd进程"><a href="#2号线程的初始化–kthreadd进程" class="headerlink" title="2号线程的初始化–kthreadd进程"></a>2号线程的初始化–kthreadd进程</h4><p>rest_init()还创建了一个进程，<code>kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES)</code>,这里的函数<code>kthreadd</code>，负责所有内核态的线程的调度和管理，是内核态所有线程运行的祖先。</p>
+<p><code>kthreadd</code>，即2号进程，用于内核态线程的管理，是一个守护线程</p>
+<p>让我们来看一下这个<code>kthreadd</code>做了哪些事情：</p>
+<ul>
+<li>初始化了<code>task</code>结构，并将该线程设置为允许任意CPU运行。</li>
+<li>进入循环，将线程状态设置为<code>TASK_INTERRUPTIBLE</code>，如果当前<code>kthread_create_list</code>为空，没有要创建的线程，则执行<code>schedule()</code>让出CPU资源。</li>
+<li>如果需要创建，则设置为<code>TASK_RUNNING</code>状态，加上锁<code>spin_lock</code>，从链表中取得<code>kthread_create_info</code> 结构的地址，在上文中已经完成插入操作(将<code>kthread_create_info</code>结构中的 list 成员加到链表中，此时根据成员 list 的偏移获得 create)</li>
+<li>调用<code>create_kthread(create)</code>完成线程的创建</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">kthreadd</span><span class="hljs-params">(<span class="hljs-type">void</span> *unused)</span><br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">task_struct</span> *<span class="hljs-title">tsk</span> =</span> current;<br><br>    <span class="hljs-comment">/* Setup a clean context for our children to inherit. */</span><br>    set_task_comm(tsk, <span class="hljs-string">&quot;kthreadd&quot;</span>);<br>    ignore_signals(tsk);<br>    set_cpus_allowed_ptr(tsk, cpu_all_mask);<br>    set_mems_allowed(node_states[N_MEMORY]);<br><br>    current-&gt;flags |= PF_NOFREEZE;<br>    cgroup_init_kthreadd();<br><br>    <span class="hljs-keyword">for</span> (;;) &#123;<br>        set_current_state(TASK_INTERRUPTIBLE);<br>        <span class="hljs-keyword">if</span> (list_empty(&amp;kthread_create_list))<br>            schedule();<br>        __set_current_state(TASK_RUNNING);<br><br>        spin_lock(&amp;kthread_create_lock);<br>        <span class="hljs-keyword">while</span> (!list_empty(&amp;kthread_create_list)) &#123;<br>            <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kthread_create_info</span> *<span class="hljs-title">create</span>;</span><br><br>            create = list_entry(kthread_create_list.next,<br>                        <span class="hljs-keyword">struct</span> kthread_create_info, <span class="hljs-built_in">list</span>);<br>            list_del_init(&amp;create-&gt;<span class="hljs-built_in">list</span>);<br>            spin_unlock(&amp;kthread_create_lock);<br><br>            create_kthread(create);<br><br>            spin_lock(&amp;kthread_create_lock);<br>        &#125;<br>        spin_unlock(&amp;kthread_create_lock);<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>调用了<code>create_kthread(create)</code>;这个函数又调用了<code>kernel_thread()</code>;只不过传入的函数是<code>kthread</code>,参数是kthread_create_info类型，里面包含了具体的线程执行动作函数<code>threadfn</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">create_kthread</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> kthread_create_info *create)</span><br>&#123;<br>    <span class="hljs-type">int</span> pid;<br><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_NUMA</span><br>    current-&gt;pref_node_fork = create-&gt;node;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>    <span class="hljs-comment">/* We want our own signal handler (we take no signals by default). */</span><br>    pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);<br>    <span class="hljs-keyword">if</span> (pid &lt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-comment">/* If user was SIGKILLed, I release the structure. */</span><br>        <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">completion</span> *<span class="hljs-title">done</span> =</span> xchg(&amp;create-&gt;done, <span class="hljs-literal">NULL</span>);<br><br>        <span class="hljs-keyword">if</span> (!done) &#123;<br>            kfree(create);<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>        create-&gt;result = ERR_PTR(pid);<br>        complete(done);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>新创建的线程由于执行了 schedule() 调度，此时并没有执行，直到我们使用<code>wake_up_process(p)</code>唤醒新创建的线程。线程被唤醒后, 会接着执行最后一段<code>threadfn(data)</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">kthread</span><span class="hljs-params">(<span class="hljs-type">void</span> *_create)</span><br>&#123;<br>    <span class="hljs-comment">/* Copy data: it&#x27;s on kthread&#x27;s stack */</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kthread_create_info</span> *<span class="hljs-title">create</span> =</span> _create;<br>    <span class="hljs-type">int</span> (*threadfn)(<span class="hljs-type">void</span> *data) = create-&gt;threadfn;<br>    <span class="hljs-type">void</span> *data = create-&gt;data;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">completion</span> *<span class="hljs-title">done</span>;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kthread</span> *<span class="hljs-title">self</span>;</span><br>    <span class="hljs-type">int</span> ret;<br><br>    self = kzalloc(<span class="hljs-keyword">sizeof</span>(*self), GFP_KERNEL);<br>    set_kthread_struct(self);<br><br>    <span class="hljs-comment">/* If user was SIGKILLed, I release the structure. */</span><br>    done = xchg(&amp;create-&gt;done, <span class="hljs-literal">NULL</span>);<br>    <span class="hljs-keyword">if</span> (!done) &#123;<br>        kfree(create);<br>        do_exit(-EINTR);<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (!self) &#123;<br>        create-&gt;result = ERR_PTR(-ENOMEM);<br>        complete(done);<br>        do_exit(-ENOMEM);<br>    &#125;<br><br>    self-&gt;data = data;<br>    init_completion(&amp;self-&gt;exited);<br>    init_completion(&amp;self-&gt;parked);<br>    current-&gt;vfork_done = &amp;self-&gt;exited;<br><br>    <span class="hljs-comment">/* OK, tell user we&#x27;re spawned, wait for stop or wakeup */</span><br>    __set_current_state(TASK_UNINTERRUPTIBLE);<br>    create-&gt;result = current;<br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     * Thread is going to call schedule(), do not preempt it,</span><br><span class="hljs-comment">     * or the creator may spend more time in wait_task_inactive().</span><br><span class="hljs-comment">     */</span><br>    preempt_disable();<br>    complete(done);<br>    schedule_preempt_disabled();<br>    preempt_enable();<br><br>    ret = -EINTR;<br>    <span class="hljs-keyword">if</span> (!test_bit(KTHREAD_SHOULD_STOP, &amp;self-&gt;flags)) &#123;<br>        cgroup_kthread_ready();<br>        __kthread_parkme(self);<br>        ret = threadfn(data);<br>    &#125;<br>    do_exit(ret);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>关于kthread函数可以看一些这个<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/581587583">https://zhuanlan.zhihu.com/p/581587583</a></p>
+<ul>
+<li><p>第2号进程创建完成之后，就一直运行在内核态了，主要负责线程的管理和调度</p>
+</li>
+<li><p>第2号进程会循环检测<code>kthread_create_list</code>全局链表, 当我们调用<code>kernel_thread</code>创建内核线程时，新线程会被加入到此链表中，因此所有的内核线程都是直接或者间接的以kthreadd为父进程</p>
+</li>
+<li><p>检测到新线程创建，则调用<code>kernel_thread()</code>创建线程，其回调为<code>kthread</code></p>
+</li>
+<li><p><code>kthread</code>在创建完后调用<code>schedule()</code>让出CPU资源，而不是直接运行。等待收到<code>wake_up_process(p)</code>的唤醒后再继续执行<code>threadfn(data)</code>。</p>
+</li>
+</ul>
+<blockquote>
+<p>我们可以得出：</p>
+</blockquote>
+<ul>
+<li>任何一个内核线程入口都是 kthread()</li>
+<li>通过<code>kthread</code>创建的内核线程不会立刻运行，需要手工 <code>wake up</code>.</li>
+<li>通过<code>kthread 创建的内核线程有可能不会执行相应线程函数</code>threadfn`而直接退出</li>
+</ul>
+<p>  回到<code>rest_init()</code>，当完成了1号2号进程的创建后，我们将0号进程真正归位idle进程，结束<code>rest_init()</code>，也正事结束了<code>start_kernel()</code>函数，由此，内核初始化全部完成。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Linux/">#Linux</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>linux内核启动与初始化</div>
+      <div>http://example.com/2023/06/13/Linux内核启动与初始化/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>bollcode</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年6月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/06/13/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/" title="">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile"></span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/06/13/Linux%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84/" title="Linux-mmap内存映射">
+                        <span class="hidden-mobile">Linux-mmap内存映射</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

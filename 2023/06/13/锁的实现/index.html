@@ -1,0 +1,782 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/basketball.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="bollcode">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="锁机制信号量参考：  https:&#x2F;&#x2F;tupelo-shen.github.io&#x2F;2020&#x2F;04&#x2F;12&#x2F;Linux%E5%86%85%E6%A0%B833-%E4%BF%A1%E5%8F%B7%E9%87%8F&#x2F; https:&#x2F;&#x2F;blog.csdn.net&#x2F;u012603457&#x2F;article&#x2F;details&#x2F;52971894 https:&#x2F;&#x2F;www.freesion.com&#x2F;article&#x2F;29">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux内核锁实现">
+<meta property="og:url" content="http://example.com/2023/06/13/%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="锁机制信号量参考：  https:&#x2F;&#x2F;tupelo-shen.github.io&#x2F;2020&#x2F;04&#x2F;12&#x2F;Linux%E5%86%85%E6%A0%B833-%E4%BF%A1%E5%8F%B7%E9%87%8F&#x2F; https:&#x2F;&#x2F;blog.csdn.net&#x2F;u012603457&#x2F;article&#x2F;details&#x2F;52971894 https:&#x2F;&#x2F;www.freesion.com&#x2F;article&#x2F;29">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/linux.svg">
+<meta property="article:published_time" content="2023-06-13T14:20:23.413Z">
+<meta property="article:modified_time" content="2023-06-25T07:52:23.405Z">
+<meta property="article:author" content="bollcode">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/linux.svg">
+  
+  
+  
+  <title>linux内核锁实现 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>bollcode</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="linux内核锁实现"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-06-13 22:20" pubdate>
+          2023年6月13日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          12k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          100 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">linux内核锁实现</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="锁机制"><a href="#锁机制" class="headerlink" title="锁机制"></a>锁机制</h1><h2 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h2><p>参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://tupelo-shen.github.io/2020/04/12/Linux%E5%86%85%E6%A0%B833-%E4%BF%A1%E5%8F%B7%E9%87%8F/">https://tupelo-shen.github.io/2020/04/12/Linux%E5%86%85%E6%A0%B833-%E4%BF%A1%E5%8F%B7%E9%87%8F/</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/u012603457/article/details/52971894">https://blog.csdn.net/u012603457/article/details/52971894</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.freesion.com/article/29121050058/">https://www.freesion.com/article/29121050058/</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.51cto.com/ab3813/1764509">https://blog.51cto.com/ab3813/1764509</a></li>
+</ul>
+<p>linux提供了两种信号量</p>
+<ul>
+<li>一个是内核信号量</li>
+<li>一个是用户态使用的信号量（遵循<code>System V IPC</code>信号量要求）</li>
+</ul>
+<p>这里我只讲linux内核中的信号量。</p>
+<h3 id="信号量实现"><a href="#信号量实现" class="headerlink" title="信号量实现"></a>信号量实现</h3><p>信号量在linux中是一个结构变量，其源码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">semaphore</span> &#123;</span><br>    <span class="hljs-type">raw_spinlock_t</span>      lock;  <span class="hljs-comment">// 用来保护这个等待队列</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>        count;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span>    <span class="hljs-title">wait_list</span>;</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h4 id="信号量机制："><a href="#信号量机制：" class="headerlink" title="信号量机制："></a>信号量机制：</h4><p>信号量是一种同步机制，用于对资源的保护，和互斥锁相似，但是他们的实现机制和用处是不一样的。信号量使用的数据结构是struct semaphore，包含三个数据成员：count是共享计数值、lock保护信号量的spinlock锁 、wait_list是当前信号量的等待队列。</p>
+<p>信号量中有一个共享计数值，当其小于0的时候，表示现在资源全被占用了，此时需要将想获取资源的进程放到他的等待队列中，处于休眠等待（这个状态不能中断），当某个进程释放信号量的时候，就会唤醒等待队列中的第一个进程。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c">down(sem);<br>...临界区...<br>up(sem);<br></code></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>对于信号量的减少和增加必须是原子操作，不然就会导致信号量出现错误，为保证信号量的一致性，需要原子操作。</p>
+</blockquote>
+<ul>
+<li>对于单核来说：原子操作就是一个指令的执行，比如inc，可以实现对信号量count的原子增加</li>
+<li><strong>对于多核来说：有时候一条指令涉及多个寄存器等的操作，这个时候一条指令不能保证对一个变量（一块内存）的原子操作（比如inc需要先将变量读入寄存器，再写入寄存器，再写入内存）。采用了<code>lock</code>指令，这个指令可以对总线加锁，导致只有一个cpu使用总线。</strong></li>
+</ul>
+<h4 id="down操作"><a href="#down操作" class="headerlink" title="down操作"></a>down操作</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs c">    <br><span class="hljs-type">void</span> <span class="hljs-title function_">down</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> semaphore *sem)</span><br>&#123;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags;<br>    raw_spin_lock_irqsave(&amp;sem-&gt;lock, flags);<br>    <span class="hljs-keyword">if</span> (likely(sem-&gt;count &gt; <span class="hljs-number">0</span>))<br>        sem-&gt;count--;<br>    <span class="hljs-keyword">else</span><br>        __down(sem);<br>    raw_spin_unlock_irqrestore(&amp;sem-&gt;lock, flags);<br>&#125;<br><span class="hljs-comment">// 如下：</span><br>down:<br>    movl $sem-&gt;count,%ecx<br>    lock; decl (%ecx);<br>    jns <span class="hljs-number">1f</span><br>    lea %ecx, %eax<br>    pushl %edx<br>    pushl %ecx<br>    call __down<br>    popl %ecx<br>    popl %edx<br><span class="hljs-number">1</span>:<br></code></pre></td></tr></table></figure>
+
+<p>这个down操作，就是将sem-&gt;count进行减一操作，为了保证这个减一操作是原子操作，因此使用了<code>lock</code>指令。如果此时信号量小于0，说明获取信号量失败，需要进入等待队列，此时会调用<code>__down()</code>函数,对于这个__down()函数，后面被down_interruptible()函数代替了，这个函数就是将这个获取信号量失败的进程放到等待队列中，并且使用信号量中lock变量来保证对等待队列操作的安全性。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> noinline <span class="hljs-type">void</span> __sched __down(<span class="hljs-keyword">struct</span> semaphore *sem)<br>&#123;<br>    __down_common(sem, TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT);<br>&#125;<br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">int</span> __sched __down_common(<span class="hljs-keyword">struct</span> semaphore *sem, <span class="hljs-type">long</span> state, <span class="hljs-type">long</span> timeout)<br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">task_struct</span> *<span class="hljs-title">task</span> =</span> current;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">semaphore_waiter</span> <span class="hljs-title">waiter</span>;</span><br> <br>    list_add_tail(&amp;waiter.<span class="hljs-built_in">list</span>, &amp;sem-&gt;wait_list);<br>    waiter.task = task;<br>    waiter.up = <span class="hljs-literal">false</span>;<br> <br>    <span class="hljs-keyword">for</span> (;;) &#123;<br>        <span class="hljs-keyword">if</span> (signal_pending_state(state, task))<br>            <span class="hljs-keyword">goto</span> interrupted;<br>        <span class="hljs-keyword">if</span> (unlikely(timeout &lt;= <span class="hljs-number">0</span>))<br>            <span class="hljs-keyword">goto</span> timed_out;<br>        __set_task_state(task, state);<br>        raw_spin_unlock_irq(&amp;sem-&gt;lock);<br>        timeout = schedule_timeout(timeout);<br>        raw_spin_lock_irq(&amp;sem-&gt;lock);<br>        <span class="hljs-keyword">if</span> (waiter.up)<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br> <br> timed_out:<br>    list_del(&amp;waiter.<span class="hljs-built_in">list</span>);<br>    <span class="hljs-keyword">return</span> -ETIME;<br> <br> interrupted:<br>    list_del(&amp;waiter.<span class="hljs-built_in">list</span>);<br>    <span class="hljs-keyword">return</span> -EINTR;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="up操作"><a href="#up操作" class="headerlink" title="up操作"></a>up操作</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c">movl $sem-&gt;count,%ecx<br>    lock; incl (%ecx)<br>    jg <span class="hljs-number">1f</span>               <span class="hljs-comment">// 标号1后面的f字符表示向前跳转，如果是b表示向后跳转</span><br>    lea %ecx,%eax<br>    pushl %edx<br>    pushl %ecx<br>    call __up<br>    popl %ecx<br>    popl %edx<br><span class="hljs-number">1</span>:·<br></code></pre></td></tr></table></figure>
+
+<p>这个up操作，就是将sem-&gt;count进行加一操作，这个加一操作是原子性的。并且在加1操作之后，如果此时count小于0，表示现在队列中有进程等待，需要进行唤醒操作，调用__up()函数，这个函数就会将等待队列中的第一个进程进行唤醒，这个过程也是使用lock变量进行保护的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c">__attribute__((regparm(<span class="hljs-number">3</span>))) <span class="hljs-type">void</span> __up(<span class="hljs-keyword">struct</span> semaphore *sem)<br>&#123;<br>    wake_up(&amp;sem-&gt;wait);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h2 id="自旋锁"><a href="#自旋锁" class="headerlink" title="自旋锁"></a>自旋锁</h2><p><a target="_blank" rel="noopener" href="https://tupelo-shen.github.io/2020/04/05/Linux%E5%86%85%E6%A0%B828-%E8%87%AA%E6%97%8B%E9%94%81/">https://tupelo-shen.github.io/2020/04/05/Linux%E5%86%85%E6%A0%B828-%E8%87%AA%E6%97%8B%E9%94%81/</a></p>
+<blockquote>
+<p>自旋锁的思想：自旋锁的概念比较简单，就是加锁失败后就会一直处于忙等待状态，就是会一直去请求锁，此时cpu处于一直运行状态。</p>
+<p>自旋锁主要适用于多CPU中，并且自旋锁锁住的临界区足够小，没必要将进程休眠了，也就是获得自旋锁的进程很快就释放了锁。</p>
+</blockquote>
+<h3 id="自旋锁结构"><a href="#自旋锁结构" class="headerlink" title="自旋锁结构"></a>自旋锁结构</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">raw_spinlock</span> &#123;</span><br>    <span class="hljs-type">arch_spinlock_t</span> raw_lock;<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_GENERIC_LOCKBREAK</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> break_lock;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>    ...<br>&#125; <span class="hljs-type">raw_spinlock_t</span>;<br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spinlock</span> &#123;</span><br>    <span class="hljs-class"><span class="hljs-keyword">union</span> &#123;</span><br>        <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">raw_spinlock</span> <span class="hljs-title">rlock</span>;</span><br>        ...<br>    &#125;;<br>&#125; <span class="hljs-type">spinlock_t</span>;<br></code></pre></td></tr></table></figure>
+
+<p>spinlock_t主要使用了 raw_spinlock结构，这个结构中</p>
+<ul>
+<li>raw_lock 表示自旋锁的状态，依赖于具体的架构实现，为1时表示可以获取锁，为0时不可获取锁</li>
+<li>break_lock表示进程正在忙等待锁</li>
+</ul>
+<h3 id="锁的操作"><a href="#锁的操作" class="headerlink" title="锁的操作"></a>锁的操作</h3><h4 id="spin-lock-上锁操作"><a href="#spin-lock-上锁操作" class="headerlink" title="spin_lock()上锁操作"></a>spin_lock()上锁操作</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> __always_inline <span class="hljs-type">void</span> <span class="hljs-title function_">spin_lock</span><span class="hljs-params">(<span class="hljs-type">spinlock_t</span> *lock)</span><br>&#123;<br>    spin_lock(&amp;lock-&gt;rlock);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>spin_lock(&amp;lock-&gt;rlock)</code>是一个宏</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> spin_lock(lock) _spin_lock(lock)</span><br></code></pre></td></tr></table></figure>
+
+<p>_spin_lock(lock)这个函数有两个版本：</p>
+<ul>
+<li>一个时UP单核</li>
+<li>一个是SMP多核</li>
+</ul>
+<p>我们这里只看多核的：</p>
+<h4 id="spin-lock-lock-函数"><a href="#spin-lock-lock-函数" class="headerlink" title="_spin_lock(lock)函数"></a><strong><code>_spin_lock(lock)</code>函数</strong></h4><p>这个函数其实就是真正的上锁操作：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> _spin_lock(<span class="hljs-type">raw_spinlock_t</span> *lock)<br>&#123;<br>    <span class="hljs-comment">//禁止抢占</span><br>    preempt_disable();<br>    <span class="hljs-comment">//这个函数在没有定义自旋锁调试的时候是空函数，我们不去管它</span><br>    spin_acquire(&amp;lock-&gt;dep_map, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, _RET_IP_);<br>    <span class="hljs-comment">//相当于_raw_spin_lock(lock)</span><br>    LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>首先会调用preempt_disable()函数，这个函数是为禁止内核抢占的</strong>。</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/kasalyn/article/details/11473885">https://blog.csdn.net/kasalyn/article/details/11473885</a></p>
+<ul>
+<li>主要是防止出现当一个进程获得锁的时候，另一个进程获取CPU的执行权，也想获取锁，导致死锁现象。</li>
+</ul>
+<p><strong>LOCK_CONTENDED是一个通用的加锁流程，</strong></p>
+<ul>
+<li><pre><code class="c">#define LOCK_CONTENDED(_lock, try, lock) \
+    lock(_lock)
+相当于： _raw_spin_lock（lock）；
+</code></pre>
+</li>
+<li><p>~~~c<br>static inline void __raw_spin_lock(raw_spinlock_t *lock)<br>{</p>
+<pre><code class="hljs">asm volatile(&quot;\n1:\t&quot;
+         //原子减，如果不为负，跳转到3f，3f后面没有任何指令，即为退出
+         // 这里如果不为原子操作，那么就会使得多个cpu同时获取锁
+         LOCK_PREFIX &quot; ; decb %0\n\t&quot;
+         &quot;jns 3f\n&quot;
+         &quot;2:\t&quot;
+         &quot;rep;nop\n\t&quot;
+           //比较0与lock-&gt;slock的值,如果lock-&gt;slock不大于0，跳转到标号2，即继续重复执行nop
+         &quot;cmpb $0,%0\n\t&quot;
+         &quot;jle 2b\n\t&quot;
+             //如果lock-&gt;slock大于0，跳转到标号1，重新判断锁的slock成员
+         &quot;jmp 1b\n&quot;
+         &quot;3:\n\t&quot;
+         : &quot;+m&quot; (lock-&gt;slock) : : &quot;memory&quot;);
+</code></pre>
+<p>}</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><br>- 其上面的意思和下面相似：<br><br>~~~c<br><span class="hljs-keyword">static</span> inline <span class="hljs-keyword">void</span> __raw_spin_lock(raw_spinlock_t *<span class="hljs-keyword">lock</span>)<br>&#123;<br>    <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>)&#123;<br>        <span class="hljs-keyword">if</span>(--<span class="hljs-keyword">lock</span>-&gt;slock == <span class="hljs-number">0</span>) <span class="hljs-comment">// 汇编代码中有lock指令前缀，此操作是原子的</span><br>            <span class="hljs-keyword">return</span>;<br>        <span class="hljs-keyword">while</span>((<span class="hljs-built_in">int</span>)<span class="hljs-keyword">lock</span>-&gt;slock &lt;= <span class="hljs-number">0</span>)&#123;&#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure></li>
+</ul>
+<p>主要就是对lock进行原子减一操作，然后判断是否获取到自旋锁，如果没有获取到自旋锁就忙等。</p>
+</blockquote>
+<h3 id="spin-unlock-解锁操作"><a href="#spin-unlock-解锁操作" class="headerlink" title="spin_unlock() 解锁操作"></a>spin_unlock() 解锁操作</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> spin_unlock(lock)       _spin_unlock(lock)</span><br></code></pre></td></tr></table></figure>
+
+<p>解锁操作源码如下：</p>
+<p><code>_spin_unlock(lock)</code>函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> __lockfunc _spin_unlock(<span class="hljs-type">spinlock_t</span> *lock)<br>&#123;<br>    _raw_spin_unlock(lock); <span class="hljs-comment">// 释放锁</span><br>    preempt_enable(); <span class="hljs-comment">// 允许内核抢占</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta"># <span class="hljs-keyword">define</span> _raw_spin_unlock(lock)     __raw_spin_unlock(&amp;(lock)-&gt;raw_lock)</span><br></code></pre></td></tr></table></figure>
+
+<p><code> __raw_spin_unlock(&amp;(lock)-&gt;raw_lock)</code>函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> __raw_spin_unlock(<span class="hljs-type">raw_spinlock_t</span> *lock)<br>&#123;<br>    <span class="hljs-comment">// 其实就是将锁变量设置为1，因为自旋锁只有两种状态0和1</span><br>    <span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;movb $1,%0&quot;</span> : <span class="hljs-string">&quot;+m&quot;</span> (lock-&gt;slock) :: <span class="hljs-string">&quot;memory&quot;</span>)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>以上我们就介绍了基本的linux内核自旋锁原理，当然还有很多关于自旋锁的操作，我们这里没讲，后面再进行详细补充。</p>
+<h2 id="互斥锁"><a href="#互斥锁" class="headerlink" title="互斥锁"></a>互斥锁</h2><p>在linux中，互斥锁是一个睡眠锁，获取不到则进程就会睡眠，并且引发调度，互斥锁可以使用信号量实现，也可以使用自旋锁来实现，下面将讲基于自旋锁实现的互斥量的方式。</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41598937/article/details/129652105">https://blog.csdn.net/qq_41598937/article/details/129652105</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/563710092">https://zhuanlan.zhihu.com/p/563710092</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43836778/article/details/124613559?spm=1001.2014.3001.5502">https://blog.csdn.net/weixin_43836778/article/details/124613559?spm=1001.2014.3001.5502</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/a7ddb2998b3b">https://www.jianshu.com/p/a7ddb2998b3b</a></p>
+<h3 id="互斥锁结构"><a href="#互斥锁结构" class="headerlink" title="互斥锁结构"></a>互斥锁结构</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">mutex</span> &#123;</span><br>   <span class="hljs-type">atomic_t</span>  count; <span class="hljs-comment">//引用计数器,1: 所可以利用,小于等于0：该锁已被获取，需要等待</span><br>   <span class="hljs-type">spinlock_t</span>  wait_lock;<span class="hljs-comment">//自旋锁类型，保证多cpu下，对等待队列访问是安全的。</span><br>   <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span> <span class="hljs-title">wait_list</span>;</span> <span class="hljs-comment">//等待队列，如果该锁被获取，任务将挂在此队列上，等待调度。</span><br>&#125;;<br><br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>其中count是一个原子变量，对于他的加减都是原子操作，在x86上的原理就是lock指令和xchg指令保证的。等会我们就看一下关于这个atomic_t变量的原子操作源码。</li>
+<li>对于wait_lock是用来保护多cpu下的wait_list的</li>
+</ul>
+<h3 id="上锁解锁操作"><a href="#上锁解锁操作" class="headerlink" title="上锁解锁操作"></a>上锁解锁操作</h3><blockquote>
+<p>上锁</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> __sched <span class="hljs-title function_">mutex_lock</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> mutex *lock)</span><br>&#123;<br>    might_sleep();<br><br>    <span class="hljs-keyword">if</span> (!__mutex_trylock_fast(lock))<br>        __mutex_lock_slowpath(lock);<br>&#125;<br>EXPORT_SYMBOL(mutex_lock);<br></code></pre></td></tr></table></figure>
+
+<p><code>__mutex_trylock_fast</code>这个用来进行加锁操作的，如果加锁失败就会进入<code>__mutex_lock_slowpath(lock)</code>;这个函数代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> noinline <span class="hljs-type">void</span> __sched<br>__mutex_lock_slowpath(<span class="hljs-keyword">struct</span> mutex *lock)<br>&#123;<br>    __mutex_lock(lock, TASK_UNINTERRUPTIBLE, <span class="hljs-number">0</span>, <span class="hljs-literal">NULL</span>, _RET_IP_);<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> __sched<br>__mutex_lock(<span class="hljs-keyword">struct</span> mutex *lock, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> state, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> subclass,<br>         <span class="hljs-keyword">struct</span> lockdep_map *nest_lock, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> ip)<br>&#123;<br>	<span class="hljs-keyword">return</span> __mutex_lock_common(lock, state, subclass, nest_lock, ip, <span class="hljs-literal">NULL</span>, <span class="hljs-literal">false</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>会调用一个 <code>__mutex_lock_common(lock, state, subclass, nest_lock, ip, NULL, false)</code>函数，这个函数是互斥锁加锁的核心函数。</p>
+<ul>
+<li>首先会先关闭这个内核抢占preempt_disable，然后多次尝试获取锁，如果获取不到锁就会进入到等待队列中睡眠，然后调度其他的进程工作。</li>
+<li>然后获取这个wait_list的自旋锁，防止多个cpu同时操作这个等待队列</li>
+<li>atomic_xchg(&amp;lock-&gt;count, 0) == 1，atomic_xchg是将lock-&gt;count和0进行交换，并且返回之前的值，如果之前的值为1说明上锁成功，如果为0，上锁失败。对于atomic_xchg这个函数是封装了原子操作的。我们等会看一下它的源码，在x86下通过lock指令和xchg指令实现的。</li>
+<li>如果上锁成功，就会将自己从等待进程中删除，然后释放自旋锁，打开抢占。</li>
+<li>如果上锁失败，就会将自己放入到等待队列中，更改进程状态，释放自旋锁，然后自动释放cpu使用权，并打开抢占等操作。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> __always_inline <span class="hljs-type">int</span> __sched<br>__mutex_lock_common(<span class="hljs-keyword">struct</span> mutex *lock, <span class="hljs-type">long</span> state, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> subclass,<br>            <span class="hljs-keyword">struct</span> lockdep_map *nest_lock, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> ip, <br>            <span class="hljs-keyword">struct</span> ww_acquire_ctx *ww_ctx, <span class="hljs-type">const</span> <span class="hljs-type">bool</span> use_ww_ctx)<br>&#123;  <br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">task_struct</span> *<span class="hljs-title">task</span> =</span> current;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">mutex_waiter</span> <span class="hljs-title">waiter</span>;</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags;<br>    <span class="hljs-type">int</span> ret;<br><br>    preempt_disable(); <span class="hljs-comment">// 上锁前，关闭抢占，防止出现死锁</span><br>    mutex_acquire_nest(&amp;lock-&gt;dep_map, subclass, <span class="hljs-number">0</span>, nest_lock, ip);<br>    spin_lock_mutex(&amp;lock-&gt;wait_lock, flags); <span class="hljs-comment">// 加锁，操作wait队列</span><br><br>    <span class="hljs-comment">/* once more, can we acquire the lock? */</span><br>    <span class="hljs-keyword">if</span> (MUTEX_SHOW_NO_WAITER(lock) &amp;&amp; (<span class="hljs-type">atomic_xchg</span>(&amp;lock-&gt;count, <span class="hljs-number">0</span>) == <span class="hljs-number">1</span>))<br>        <span class="hljs-keyword">goto</span> skip_wait; <span class="hljs-comment">// 成功说明获取到锁了，则不用执行wait队列的操作了</span><br><br>    debug_mutex_lock_common(lock, &amp;waiter);<br>    debug_mutex_add_waiter(lock, &amp;waiter, task_thread_info(task));<br><br>    <span class="hljs-comment">/* add waiting tasks to the end of the waitqueue (FIFO): */</span><br>    list_add_tail(&amp;waiter.<span class="hljs-built_in">list</span>, &amp;lock-&gt;wait_list);<br>    waiter.task = task;<br><br>    lock_contended(&amp;lock-&gt;dep_map, ip);<br><br>    <span class="hljs-keyword">for</span> (;;) &#123;<br>        <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * Lets try to take the lock again - this is needed even if</span><br><span class="hljs-comment">         * we get here for the first time (shortly after failing to</span><br><span class="hljs-comment">         * acquire the lock), to make sure that we get a wakeup once</span><br><span class="hljs-comment">         * it&#x27;s unlocked. Later on, if we sleep, this is the</span><br><span class="hljs-comment">         * operation that gives us the lock. We xchg it to -1, so</span><br><span class="hljs-comment">         * that when we release the lock, we properly wake up the</span><br><span class="hljs-comment">         * other waiters:</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">if</span> (MUTEX_SHOW_NO_WAITER(lock) &amp;&amp;<br>            (<span class="hljs-type">atomic_xchg</span>(&amp;lock-&gt;count, <span class="hljs-number">-1</span>) == <span class="hljs-number">1</span>)) <span class="hljs-comment">// 唤醒后再次尝试拿锁</span><br>            <span class="hljs-keyword">break</span>;<br><br>        <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * got a signal? (This code gets eliminated in the</span><br><span class="hljs-comment">         * TASK_UNINTERRUPTIBLE case.)</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">if</span> (unlikely(signal_pending_state(state, task))) &#123;<br>            ret = -EINTR;  <br>            <span class="hljs-keyword">goto</span> err;<br>        &#125;<br>       <span class="hljs-comment">// 设置进程状态</span><br>        __set_task_state(task, state);<br>       <span class="hljs-comment">/*do&#x27;t get the lock, go to sleep: */</span><br>       spin_unlock_mutex(&amp;lock-&gt;wait_lock, flags);<br>       schedule_preempt_disabled();<br>       spin_lock_mutex(&amp;lock-&gt;wait_lock, flags);<br>&#125;<br>   <span class="hljs-comment">// 已经获取到锁了，等待队列里删除自己</span><br>   mutex_remove_waiter(lock, &amp;waiter, current_thread_info());<br>    <span class="hljs-comment">/* set it to 0 if there are no waiters left: */</span><br>    <span class="hljs-keyword">if</span> (likely(list_empty(&amp;lock-&gt;wait_list)))<br>        <span class="hljs-type">atomic_set</span>(&amp;lock-&gt;count, <span class="hljs-number">0</span>);<br>    debug_mutex_free_waiter(&amp;waiter);<br><br>skip_wait:<br>    <span class="hljs-comment">/* got the lock - cleanup and rejoice! */</span><br>    lock_acquired(&amp;lock-&gt;dep_map, ip);<br>    mutex_set_owner(lock);<br>    spin_unlock_mutex(&amp;lock-&gt;wait_lock, flags);<br>    <span class="hljs-comment">// 打开抢占</span><br>    preempt_enable();<br><span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br><br>err:<br>    mutex_remove_waiter(lock, &amp;waiter, task_thread_info(task));<br>    spin_unlock_mutex(&amp;lock-&gt;wait_lock, flags);<br>    debug_mutex_free_waiter(&amp;waiter);<br>    mutex_release(&amp;lock-&gt;dep_map, <span class="hljs-number">1</span>, ip);<br>    preempt_enable();<br>    <span class="hljs-keyword">return</span> ret;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>解锁：</p>
+</blockquote>
+<p>基本思想就是将count原子加1，如大于0，结束，如果不大于0，就跳转到__mutex_unlock_slowpath()</p>
+<p>函数，这个函数会将等待队列中的第一个进程唤醒。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs asm">#define __mutex_fastpath_unlock(count, fail_fn)         \<br>do &#123;                                \<br>    unsigned int dummy;                 \<br>                                \<br>    typecheck(atomic_t *, count);               \<br>    typecheck_fn(void (*)(atomic_t *), fail_fn);        \<br>                                \<br>    asm volatile(LOCK_PREFIX &quot;   incl (%%eax)\n&quot;        \<br>             &quot;   jg 1f\n&quot;               \<br>             &quot;   call &quot; #fail_fn &quot;\n&quot;           \<br>             &quot;1:\n&quot;                 \<br>             : &quot;=a&quot; (dummy)             \<br>             : &quot;a&quot; (count)              \<br>             : &quot;memory&quot;, &quot;ecx&quot;, &quot;edx&quot;);         \<br>&#125; while (0)<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs c">  __visible <span class="hljs-type">void</span><br> __mutex_unlock_slowpath(<span class="hljs-type">atomic_t</span> *lock_count)<br> &#123;<br>     __mutex_unlock_common_slowpath(lock_count, <span class="hljs-number">1</span>);<br> &#125;<br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span><br>__mutex_unlock_common_slowpath(<span class="hljs-type">atomic_t</span> *lock_count, <span class="hljs-type">int</span> nested)<br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">mutex</span> *<span class="hljs-title">lock</span> =</span> container_of(lock_count, <span class="hljs-keyword">struct</span> mutex, count);<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags;<br><br>    <span class="hljs-comment">/*  </span><br><span class="hljs-comment">     * some architectures leave the lock unlocked in the fastpath failure</span><br><span class="hljs-comment">     * case, others need to leave it locked. In the later case we have to</span><br><span class="hljs-comment">     * unlock it here</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">if</span> (__mutex_slowpath_needs_to_unlock())<br>        <span class="hljs-type">atomic_set</span>(&amp;lock-&gt;count, <span class="hljs-number">1</span>); <br><br>    spin_lock_mutex(&amp;lock-&gt;wait_lock, flags);<br>    mutex_release(&amp;lock-&gt;dep_map, nested, _RET_IP_);<br>    debug_mutex_unlock(lock);<br><br>    <span class="hljs-keyword">if</span> (!list_empty(&amp;lock-&gt;wait_list)) &#123;<br>        <span class="hljs-comment">/* get the first entry from the wait-list: */</span><br>        <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">mutex_waiter</span> *<span class="hljs-title">waiter</span> =</span><br>                list_entry(lock-&gt;wait_list.next,<br>                       <span class="hljs-keyword">struct</span> mutex_waiter, <span class="hljs-built_in">list</span>);<br><br>        debug_mutex_wake_waiter(lock, waiter);<br><br>        wake_up_process(waiter-&gt;task);<br>    &#125;   <br><br>    spin_unlock_mutex(&amp;lock-&gt;wait_lock, flags);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="atomic-xchg-函数"><a href="#atomic-xchg-函数" class="headerlink" title="atomic_xchg()函数"></a>atomic_xchg()函数</h3><p><strong>atomic_xchg()函数是将新值存入到atomic_t类型的变量，然后将变量的旧值返回，它是基于<code>xchg</code>指令实现的</strong></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qb_2008/article/details/6840808">https://blog.csdn.net/qb_2008/article/details/6840808</a></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">int</span> <span class="hljs-title function_">atomic_xchg</span><span class="hljs-params">(<span class="hljs-type">atomic_t</span> *v, <span class="hljs-type">int</span> new)</span><br>&#123;<br>	<span class="hljs-keyword">return</span> xchg(&amp;v-&gt;counter, new);<br>&#125;<br> <br><span class="hljs-meta">#<span class="hljs-keyword">define</span> xchg(ptr, v)							\</span><br><span class="hljs-meta">	((__typeof__(*(ptr)))__xchg((unsigned long)(v), (ptr), sizeof(*(ptr))))</span><br> <br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> __xchg(<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> x, <span class="hljs-keyword">volatile</span> <span class="hljs-type">void</span> *ptr,<br>				   <span class="hljs-type">int</span> size)<br>&#123;<br>	<span class="hljs-keyword">switch</span> (size) &#123;<br>	<span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:<br>		<span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;xchgb %b0,%1&quot;</span></span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;=q&quot;</span> (x)</span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;m&quot;</span> (*__xg(ptr)), <span class="hljs-string">&quot;0&quot;</span> (x)</span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;memory&quot;</span>)</span>;<br>		<span class="hljs-keyword">break</span>;<br>	<span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:<br>		<span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;xchgw %w0,%1&quot;</span></span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;=r&quot;</span> (x)</span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;m&quot;</span> (*__xg(ptr)), <span class="hljs-string">&quot;0&quot;</span> (x)</span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;memory&quot;</span>)</span>;<br>		<span class="hljs-keyword">break</span>;<br>	<span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:<br>		<span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;xchgl %k0,%1&quot;</span></span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;=r&quot;</span> (x)</span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;m&quot;</span> (*__xg(ptr)), <span class="hljs-string">&quot;0&quot;</span> (x)</span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;memory&quot;</span>)</span>;<br>		<span class="hljs-keyword">break</span>;<br>	<span class="hljs-keyword">case</span> <span class="hljs-number">8</span>:<br>		<span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;xchgq %0,%1&quot;</span></span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;=r&quot;</span> (x)</span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;m&quot;</span> (*__xg(ptr)), <span class="hljs-string">&quot;0&quot;</span> (x)</span><br><span class="hljs-params">			     : <span class="hljs-string">&quot;memory&quot;</span>)</span>;<br>		<span class="hljs-keyword">break</span>;<br>	&#125;<br>	<span class="hljs-keyword">return</span> x;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>对于atomic_t类型的变量的其他的操作函数，大部分使用的是<code>lock</code>指令实现的</strong>,而对于arm架构来说，他们的原子操作，基本上是采用<code>ldrex  </code>和 <code>strex   </code>这两个指令实现的。</p>
+<p><a target="_blank" rel="noopener" href="http://svip.hehjyx.com/blog/ATOMIC_atomic_xchg/">http://svip.hehjyx.com/blog/ATOMIC_atomic_xchg/</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Linux/">#Linux</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>linux内核锁实现</div>
+      <div>http://example.com/2023/06/13/锁的实现/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>bollcode</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年6月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/06/13/%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/" title="linux进程调度">
+                        <span class="hidden-mobile">linux进程调度</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

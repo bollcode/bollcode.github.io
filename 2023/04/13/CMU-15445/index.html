@@ -1,0 +1,1251 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/basketball.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="bollcode">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="CMU-15445Project1–BufferPool这个实验主要是完成一个BufferPool Manager，因为磁盘的读写速度很慢，所以我们将在内存中维护一定大小的内存，作为数据库数据的缓冲区，即创建一个BufferPool来做缓冲区。这个实验主要分三个部分，一个是Lru_replacer ，一个是实现一个bufferpool manager instance，一个是parallel bu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CMU-15445 数据库">
+<meta property="og:url" content="http://example.com/2023/04/13/CMU-15445/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="CMU-15445Project1–BufferPool这个实验主要是完成一个BufferPool Manager，因为磁盘的读写速度很慢，所以我们将在内存中维护一定大小的内存，作为数据库数据的缓冲区，即创建一个BufferPool来做缓冲区。这个实验主要分三个部分，一个是Lru_replacer ，一个是实现一个bufferpool manager instance，一个是parallel bu">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/cmu15445.svg">
+<meta property="article:published_time" content="2023-04-13T13:28:37.143Z">
+<meta property="article:modified_time" content="2023-06-25T08:18:49.334Z">
+<meta property="article:author" content="bollcode">
+<meta property="article:tag" content="CMU15445">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/cmu15445.svg">
+  
+  
+  
+  <title>CMU-15445 数据库 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>bollcode</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="CMU-15445 数据库"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-04-13 21:28" pubdate>
+          2023年4月13日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          45k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          375 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">CMU-15445 数据库</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="CMU-15445"><a href="#CMU-15445" class="headerlink" title="CMU-15445"></a>CMU-15445</h1><h2 id="Project1–BufferPool"><a href="#Project1–BufferPool" class="headerlink" title="Project1–BufferPool"></a>Project1–BufferPool</h2><p>这个实验主要是完成一个BufferPool Manager，因为磁盘的读写速度很慢，所以我们将在内存中维护一定大小的内存，作为数据库数据的缓冲区，即创建一个BufferPool来做缓冲区。这个实验主要分三个部分，一个是Lru_replacer ，一个是实现一个bufferpool manager instance，一个是parallel bufferpool manager。</p>
+<h3 id="对象关系整理"><a href="#对象关系整理" class="headerlink" title="对象关系整理"></a>对象关系整理</h3><h3 id="Lru-replacer"><a href="#Lru-replacer" class="headerlink" title="Lru_replacer"></a>Lru_replacer</h3><p>这个是一种置换策略，<strong>最近最少使用</strong>算法，用来将bufferpool中最长时间没有使用的page给剔除内存，从而腾出新的空间。</p>
+<p><a target="_blank" rel="noopener" href="https://leetcode.cn/problems/lru-cache/description/">Lru算法leetcode</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34343254/article/details/110082648">https://blog.csdn.net/qq_34343254/article/details/110082648</a></p>
+<blockquote>
+<p>Lru基本思想：</p>
+<ul>
+<li>首先我们维护一个双向链表，这个链表节点的内容可以理解为我们在内存中要访问的内容</li>
+<li>然后如果某个节点中的内容最近被访问了，那么就将这个链表放到最后面，说明近期的活跃度较高</li>
+<li>如果我们向要从这个链表中拿掉一个节点，则我们可以直接将链表的头部给拿掉</li>
+</ul>
+<p><strong>同时为了能够快速的定位到某个节点，我们需要维护一个hash表，将要访问的内容为key，节点的指针为value，这样我们就可以快速的定位到这个节点。</strong></p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LRUCache</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-type">int</span> capacity = <span class="hljs-number">0</span>;<br>    map&lt;<span class="hljs-type">int</span>,list&lt;pair&lt;<span class="hljs-type">int</span>,<span class="hljs-type">int</span>&gt;&gt;::iterator&gt; mymap;<br>    list&lt;pair&lt;<span class="hljs-type">int</span>,<span class="hljs-type">int</span>&gt;&gt; mylist;<br>    <span class="hljs-built_in">LRUCache</span>(<span class="hljs-type">int</span> capacity) &#123;<br>        <span class="hljs-keyword">this</span>-&gt;capacity = capacity;<br>    &#125;<br>    <br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">get</span><span class="hljs-params">(<span class="hljs-type">int</span> key)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span>(mymap.<span class="hljs-built_in">count</span>(key))&#123;<br>            <span class="hljs-keyword">auto</span> iter = mymap[key];<br>            <span class="hljs-type">int</span> val = iter-&gt;second;<br>            mylist.<span class="hljs-built_in">push_back</span>(&#123;iter-&gt;first,iter-&gt;second&#125;);<br>            mylist.<span class="hljs-built_in">erase</span>(iter);<br>            mymap[key] = --mylist.<span class="hljs-built_in">end</span>();<br>            <span class="hljs-keyword">return</span> val;<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>    &#125;<br>    <br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">put</span><span class="hljs-params">(<span class="hljs-type">int</span> key, <span class="hljs-type">int</span> value)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span>(mymap.<span class="hljs-built_in">count</span>(key))&#123;<br><br>            <span class="hljs-keyword">auto</span> iter = mymap[key];<br>            mylist.<span class="hljs-built_in">erase</span>(iter);<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br><br>            <span class="hljs-keyword">if</span>(mymap.<span class="hljs-built_in">size</span>() == capacity)&#123;<br>                <span class="hljs-keyword">auto</span> iter = mylist.<span class="hljs-built_in">begin</span>();<br>                mymap.<span class="hljs-built_in">erase</span>(iter-&gt;first);<br>                mylist.<span class="hljs-built_in">erase</span>(iter);<br>            &#125;<br><br>        &#125;<br>        mylist.<span class="hljs-built_in">push_back</span>(&#123;key,value&#125;);<br>        mymap[key] = --mylist.<span class="hljs-built_in">end</span>();<br>    &#125;<br>&#125;;<br><br><span class="hljs-comment">// 别人的版本</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">LRUCache</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">LRUCache</span>(<span class="hljs-type">int</span> capacity) : <span class="hljs-built_in">cap</span>(capacity) &#123;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">get</span><span class="hljs-params">(<span class="hljs-type">int</span> key)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (map.<span class="hljs-built_in">find</span>(key) == map.<span class="hljs-built_in">end</span>()) <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>        <span class="hljs-keyword">auto</span> key_value = *map[key];<br>        cache.<span class="hljs-built_in">erase</span>(map[key]);<br>        cache.<span class="hljs-built_in">push_front</span>(key_value);<br>        map[key] = cache.<span class="hljs-built_in">begin</span>();<br>        <span class="hljs-keyword">return</span> key_value.second;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">put</span><span class="hljs-params">(<span class="hljs-type">int</span> key, <span class="hljs-type">int</span> value)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (map.<span class="hljs-built_in">find</span>(key) == map.<span class="hljs-built_in">end</span>()) &#123;<br>            <span class="hljs-keyword">if</span> (cache.<span class="hljs-built_in">size</span>() == cap) &#123;<br>                map.<span class="hljs-built_in">erase</span>(cache.<span class="hljs-built_in">back</span>().first);<br>                cache.<span class="hljs-built_in">pop_back</span>();<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">else</span> &#123;<br>            cache.<span class="hljs-built_in">erase</span>(map[key]);<br>        &#125;<br>        cache.<span class="hljs-built_in">push_front</span>(&#123;key, value&#125;);<br>        map[key] = cache.<span class="hljs-built_in">begin</span>();<br>    &#125;<br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-type">int</span> cap;<br>    list&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;&gt; cache;<br>    unordered_map&lt;<span class="hljs-type">int</span>, list&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;&gt;::iterator&gt; map;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>我们在这个实验中需要实现几个重要的函数：</p>
+<p><img src="/2023/04/13/CMU-15445/image-20230314164341378.png" srcset="/img/loading.gif" lazyload alt="image-20230314164341378"></p>
+<p><strong>我们添加了几个重要变量：一个是维护的双向链表，和一个hash表，为了是能够快速定位到要更改的节点。</strong></p>
+</blockquote>
+<h4 id="LRUReplacer-Victim"><a href="#LRUReplacer-Victim" class="headerlink" title="LRUReplacer::Victim"></a>LRUReplacer::Victim</h4><blockquote>
+<p>这个函数用来将链表中的一个长时间不用的frame_id对应的节点抹去，这个frame_id其实就是pages数组的index，然后通过这个我们就能获取到这个位置上的page了，然后将这个page给写入到磁盘中，腾出这个page的空间。</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 这个函数用来牺牲一个帧,将这个frame_id对应的节点抹去，并将这个抹去的frame_id防止 *frame_id指针中，这样就获取了抹去的frame_id</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">LRUReplacer::Victim</span><span class="hljs-params">(<span class="hljs-type">frame_id_t</span> *frame_id)</span> </span>&#123;<br>    <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">guard</span><span class="hljs-params">(lru_latch_)</span></span>;<br>    <span class="hljs-keyword">if</span>(lru_map_.<span class="hljs-built_in">empty</span>())&#123;<br>        <span class="hljs-comment">//说明这个链表中没有可以牺牲的帧</span><br>        *frame_id = <span class="hljs-number">-1</span>;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>    &#125;<br>    *frame_id = lru_list_.<span class="hljs-built_in">front</span>(); <span class="hljs-comment">// 返回这个链表的最前面一个，最前面的一个就是要被淘汰的</span><br>    lru_map_.<span class="hljs-built_in">erase</span>(*frame_id); <span class="hljs-comment">// 淘汰了那个节点后，要在map中也将其抹去</span><br>    lru_list_.<span class="hljs-built_in">pop_front</span>(); <span class="hljs-comment">// 将最前面的节点抹去</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>; <br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="LRUReplacer-Pin"><a href="#LRUReplacer-Pin" class="headerlink" title="LRUReplacer::Pin"></a>LRUReplacer::Pin</h4><blockquote>
+<p>这个函数用来将一个指定的frame_id对应的节点给脱离出这个链表，也就是不允许这个被lru算法选中了，不能写回磁盘</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 意味着被pin的页正在cpu使用中，不能被LRU算法选中；将一个帧从牺牲候选队列中移除。</span><br><span class="hljs-comment"> */</span> <br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">LRUReplacer::Pin</span><span class="hljs-params">(<span class="hljs-type">frame_id_t</span> frame_id)</span> </span>&#123;<br>    <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">guard</span><span class="hljs-params">(lru_latch_)</span></span>;<br>    <span class="hljs-keyword">auto</span> iter = lru_map_.<span class="hljs-built_in">find</span>(frame_id); <span class="hljs-comment">// 找到这个frame_id对应的在list链表中的节点</span><br>    <span class="hljs-keyword">if</span>(iter == lru_map_.<span class="hljs-built_in">end</span>())&#123;<br>        <span class="hljs-comment">// 表示没有在map中找到对应的元素</span><br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    lru_list_.<span class="hljs-built_in">erase</span>(iter-&gt;second);<br>    lru_map_.<span class="hljs-built_in">erase</span>(iter);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="LRUReplacer-Unpin"><a href="#LRUReplacer-Unpin" class="headerlink" title="LRUReplacer::Unpin"></a>LRUReplacer::Unpin</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> *  这个函数用来将cpu刚使用完成的页对应的frameid加入到lru中</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">LRUReplacer::Unpin</span><span class="hljs-params">(<span class="hljs-type">frame_id_t</span> frame_id)</span> </span>&#123;<br>    <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">guard</span><span class="hljs-params">(lru_latch_)</span></span>;<br>    <span class="hljs-keyword">if</span>(lru_map_.<span class="hljs-built_in">find</span>(frame_id) != lru_map_.<span class="hljs-built_in">end</span>())&#123;<br>        <span class="hljs-comment">// 说明这个已经在lru缓存中了</span><br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    lru_list_.<span class="hljs-built_in">push_back</span>(frame_id);<br>    <span class="hljs-keyword">auto</span> p = lru_list_.<span class="hljs-built_in">end</span>();<br>    p--; <span class="hljs-comment">// 找到双向链表中的最后一个节点，也就是刚才加的</span><br>    lru_map_[frame_id] = p; <span class="hljs-comment">// 将节点和frame_id的关系加入到map中</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="BufferPool-Manager"><a href="#BufferPool-Manager" class="headerlink" title="BufferPool Manager"></a>BufferPool Manager</h3><blockquote>
+<p>这个类的作用是管理磁盘和内存之间页的读入和写出</p>
+</blockquote>
+<p>首先我们先介绍一下一个参数：</p>
+<ul>
+<li>FrameId 这个其实就是pages数组的index，pages数组的每一个元素都可以看作一个帧，大小和page相等</li>
+<li>内存中的frame是用来放page的，</li>
+<li>我们使用page_table这个来映射pageid和frameid的关系。</li>
+<li>freelist 代表的是这个pages数组中空闲的frameid，他是一个链表，我们向bufferpool申请空间的时候，我们会先看看freelist是不是为空，如果不为空，就拿下一个分配给申请者，并把这个frameid加入到lruReplacer中，然后在page_table中添加pageid和frameid之间的关系</li>
+</ul>
+<p><img src="/2023/04/13/CMU-15445/image-20230314211944477.png" srcset="/img/loading.gif" lazyload alt="image-20230314211944477"></p>
+<blockquote>
+<p><strong>我们在上面已经讨论了这个lrureplacer的作用，他就是记录现在已经使用过的frameid对应的空间，也就是表示这些空间上的page现在没有被使用，可以被刷新到磁盘。</strong></p>
+<ul>
+<li>lrureplacer只记录了frameid</li>
+<li>代表此时这些对应的空间上的page可以被写入到磁盘</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>关于 pin_count 的作用：</p>
+<ul>
+<li><ul>
+<li>task1中的Unpin：若pin_count==0，将此页的frameID（物理地址）放入LRUReplacer</li>
+<li>pin_count：有多少线程正在使用当前页</li>
+<li>规定：被pin住的页面不允许被free，不允许写入磁盘</li>
+</ul>
+</li>
+<li><p>pin_count何时能够设置为0：</p>
+</li>
+<li><ul>
+<li>delete时一定可以设置为0</li>
+<li>unpin时，pincout–；</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>以下是相关函数：</p>
+</blockquote>
+<blockquote>
+<p>首先在创建bufferpoolmanagerinstance的时候，构造函数会初始化一些参数，比如磁盘管理器，bufferpool的大小，比较重要的是要初始化<code>freelist</code>将所有的frameid放进链表中</p>
+</blockquote>
+<p><img src="/2023/04/13/CMU-15445/image-20230314213547817.png" srcset="/img/loading.gif" lazyload alt="image-20230314213547817"></p>
+<blockquote>
+<p> flushpgimp：这个函数是将指定的pageid页面给写入到磁盘</p>
+<p>【对于这个pageid 我还是有点疑惑】</p>
+</blockquote>
+<p><img src="/2023/04/13/CMU-15445/image-20230314213706152.png" srcset="/img/loading.gif" lazyload alt="image-20230314213706152"></p>
+<blockquote>
+<p>FetchPgImp： 这个函数根据指定的pageid来获取在pages中的指定的page</p>
+<ul>
+<li>基本思路就是先看看这个page是不是在内存中</li>
+<li>如果在内存中就将这个页返回，并标记为pin，从lru中删除</li>
+<li>如果不在内存中，就在pages数组中找到一个page空间，然后去磁盘中读取这个page然后放到这个page空间中。</li>
+</ul>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> *  从bufferpool中获取一个页，如果这个页不在的话，就先在bufferpool中找一个位置（先freelist，在lru），找到之后，将之前的页</span><br><span class="hljs-comment"> *  判断是否为脏页来决定是否写入磁盘，然后从磁盘中读取对应的pageid的页到刚才找到的位置</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">Page *<span class="hljs-title">BufferPoolManagerInstance::FetchPgImp</span><span class="hljs-params">(<span class="hljs-type">page_id_t</span> page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// 1.     Search the page table for the requested page (P).</span><br>  <span class="hljs-comment">// 1.1    If P exists, pin it and return it immediately.</span><br>  <span class="hljs-comment">// 1.2    If P does not exist, find a replacement page (R) from either the free list or the replacer.</span><br>  <span class="hljs-comment">//        Note that pages are always found from the free list first.</span><br>  <span class="hljs-comment">// 2.     If R is dirty, write it back to the disk.</span><br>  <span class="hljs-comment">// 3.     Delete R from the page table and insert P.</span><br>  <span class="hljs-comment">// 4.     Update P&#x27;s metadata, read in the page content from disk, and then return a pointer to P.</span><br>  <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">guard</span><span class="hljs-params">(latch_)</span></span>;<br>  <span class="hljs-keyword">auto</span> iter = page_table_.<span class="hljs-built_in">find</span>(page_id);<br>  <span class="hljs-keyword">if</span> (iter != page_table_.<span class="hljs-built_in">end</span>()) &#123;<br>    <span class="hljs-type">frame_id_t</span> frameid = iter-&gt;second;<br>    Page *page = &amp;pages_[frameid];<br>    page-&gt;pin_count_++;<br>    replacer_-&gt;<span class="hljs-built_in">Pin</span>(frameid);<br>    <span class="hljs-keyword">return</span> page;<br>  &#125;<br>  <span class="hljs-comment">// 表示pageid对应的页不在内存中</span><br>  <span class="hljs-type">frame_id_t</span> frameid = <span class="hljs-number">-1</span>;<br>  Page *page = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-keyword">if</span> (!free_list_.<span class="hljs-built_in">empty</span>()) &#123;<br>    frameid = free_list_.<span class="hljs-built_in">front</span>();<br>    free_list_.<span class="hljs-built_in">pop_front</span>();<br>    page = &amp;pages_[frameid];<br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (replacer_-&gt;<span class="hljs-built_in">Victim</span>(&amp;frameid)) &#123;  <span class="hljs-comment">// 从lru中移除一个frameid</span><br>    page = &amp;pages_[frameid];<br>    <span class="hljs-comment">// 如果是脏页就刷进磁盘</span><br>    <span class="hljs-keyword">if</span> (page-&gt;<span class="hljs-built_in">IsDirty</span>()) &#123;<br>      disk_manager_-&gt;<span class="hljs-built_in">WritePage</span>(page-&gt;<span class="hljs-built_in">GetPageId</span>(), page-&gt;<span class="hljs-built_in">GetData</span>());<br>      page-&gt;is_dirty_ = <span class="hljs-literal">false</span>;<br>    &#125;<br>    <span class="hljs-comment">// 清除掉pagetable中的pageid和frameid的关系</span><br>    page_table_.<span class="hljs-built_in">erase</span>(page-&gt;<span class="hljs-built_in">GetPageId</span>());<br>  &#125;<br><br>  <span class="hljs-comment">// 判断是否找到了页的位置</span><br>  <span class="hljs-keyword">if</span> (page != <span class="hljs-literal">nullptr</span>) &#123;<br>    page-&gt;page_id_ = page_id;<br>    page-&gt;pin_count_ = <span class="hljs-number">1</span>;<br>    page-&gt;is_dirty_ = <span class="hljs-literal">false</span>;<br>    <span class="hljs-comment">// 在内存中找到了位置之后，我们开始将磁盘中对应的pageid给读进来，放入这个bufferpool中</span><br>    <span class="hljs-comment">// printf(&quot;hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh %d\n&quot;,page_id);</span><br>    disk_manager_-&gt;<span class="hljs-built_in">ReadPage</span>(page_id, page-&gt;<span class="hljs-built_in">GetData</span>());<br>    page_table_[page_id] = frameid;<br>    replacer_-&gt;<span class="hljs-built_in">Pin</span>(frameid);<br>  &#125;<br>  <span class="hljs-keyword">return</span> page;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>NewPgImp： 这个函数是申请一个page空间，<strong>但是申请的page空间的pageid是bufferpool分配的这个是我不理解的</strong></p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> *  这个函数是为一个页在bufferpool中分配一个位置，然后分配一个pageid，并将其pageid和frameid关系加入到pagetable中</span><br><span class="hljs-comment"> *  然后返回一个Page指针，指向了Pages数组中某一个page地址，就是在pages数组中申请了一个page空间</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">Page *<span class="hljs-title">BufferPoolManagerInstance::NewPgImp</span><span class="hljs-params">(<span class="hljs-type">page_id_t</span> *page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// 0.   Make sure you call AllocatePage!</span><br>  <span class="hljs-comment">// 1.   If all the pages in the buffer pool are pinned, return nullptr.</span><br>  <span class="hljs-comment">// 2.   Pick a victim page P from either the free list or the replacer. Always pick from the free list first.</span><br>  <span class="hljs-comment">// 3.   Update P&#x27;s metadata, zero out memory and add P to the page table.</span><br>  <span class="hljs-comment">// 4.   Set the page ID output parameter. Return a pointer to P.</span><br>  <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">guard</span><span class="hljs-params">(latch_)</span></span>;<br>  <span class="hljs-type">frame_id_t</span> frameid = <span class="hljs-number">-1</span>;<br>  Page *page = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-keyword">if</span> (!free_list_.<span class="hljs-built_in">empty</span>()) &#123;<br>    <span class="hljs-comment">// 说明空闲链表中有空闲的frame_id,也就是在bufferpool中有空位</span><br>    <span class="hljs-comment">// 获取一个空闲的位置, 将page指向bufferpool的对应的page的位置</span><br>    frameid = free_list_.<span class="hljs-built_in">front</span>();<br>    free_list_.<span class="hljs-built_in">pop_front</span>();<br>    page = &amp;pages_[frameid];<br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (replacer_-&gt;<span class="hljs-built_in">Victim</span>(&amp;frameid)) &#123;<br>    <span class="hljs-comment">// 当空闲链表中找不到空闲的位置，说明bufferpool中位置被占满了，</span><br>    <span class="hljs-comment">// 这个时候需要使用lru移除一个，调用Victim()移除一个，并返回这个移除的位置</span><br>    page = &amp;pages_[frameid];<br>    <span class="hljs-keyword">if</span> (page-&gt;<span class="hljs-built_in">IsDirty</span>()) &#123;<br>      disk_manager_-&gt;<span class="hljs-built_in">WritePage</span>(page-&gt;<span class="hljs-built_in">GetPageId</span>(), page-&gt;<span class="hljs-built_in">GetData</span>());<br>    &#125;<br>    <span class="hljs-comment">// 从pagetable中移除pageid和frameid的对应关系</span><br>    page_table_.<span class="hljs-built_in">erase</span>(page-&gt;<span class="hljs-built_in">GetPageId</span>());<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> (page !=<span class="hljs-literal">nullptr</span>) &#123;<br>    <span class="hljs-comment">// 说明上面在bufferpool中获取到了位置，现在应该将这个申请一个id</span><br>    *page_id = <span class="hljs-built_in">AllocatePage</span>();<br>    page-&gt;page_id_ = *page_id;<br>    page-&gt;pin_count_ = <span class="hljs-number">1</span>;<br>    page-&gt;is_dirty_ = <span class="hljs-literal">false</span>;<br>    page-&gt;<span class="hljs-built_in">ResetMemory</span>();<br>    page_table_[*page_id] = frameid;<br>    replacer_-&gt;<span class="hljs-built_in">Pin</span>(frameid);<br>    <span class="hljs-keyword">return</span> page;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="/2023/04/13/CMU-15445/image-20230314215203809.png" srcset="/img/loading.gif" lazyload alt="image-20230314215203809"></p>
+<h3 id="ParallelBufferPoolManager"><a href="#ParallelBufferPoolManager" class="headerlink" title="ParallelBufferPoolManager"></a>ParallelBufferPoolManager</h3><p>为了提高bufferpool的并发程度，我们将bufferpoolmanager的粒度做的小一点，这样就能够实现更好的并发效果。</p>
+<h2 id="Project2-–-Hash-Index"><a href="#Project2-–-Hash-Index" class="headerlink" title="Project2 – Hash Index"></a>Project2 – Hash Index</h2><p>这个实验我们将完成数据库索引功能。我们使用extendible hash table来实现数据库索引功能，什么是可拓展hash表，可以参考这个文章： <a target="_blank" rel="noopener" href="https://www.geeksforgeeks.org/extendible-hashing-dynamic-approach-to-dbms/">https://www.geeksforgeeks.org/extendible-hashing-dynamic-approach-to-dbms/</a></p>
+<blockquote>
+<p>基本流程</p>
+</blockquote>
+<p><img src="/2023/04/13/CMU-15445/Basic-Working-of-Extendible-Hashing.png" srcset="/img/loading.gif" lazyload alt="Lightbox"></p>
+<p>它的基本原理就是：我们会维护一个directory 和很多个bucket，通过一个hash函数，我们可以在directory中找到一个位置，这个位置存着某个bucket的指针，每一个bucket都是hash后相同的对象存在的空间。</p>
+<p>我们要清楚这个是一个可以拓展的hash表，通过维护directory的globaldepth 和很多bucket的localdepth来进行拓展hash表（主要拓展的是bucket）。</p>
+<h3 id="HashTableDirectoryPage"><a href="#HashTableDirectoryPage" class="headerlink" title="HashTableDirectoryPage"></a>HashTableDirectoryPage</h3><p>这个类就是可拓展hash表的directory，它里面维护了一个自己的globaldepth变量，一个bucket_localdepth数组和一个bucket_pageid数组。</p>
+<p><img src="/2023/04/13/CMU-15445/image-20230315213805600.png" srcset="/img/loading.gif" lazyload alt="image-20230315213805600"></p>
+<p>他在内存中占用一个page的大小（4096字节）：基本布局如下</p>
+<p><img src="/2023/04/13/CMU-15445/image-20230315213908417.png" srcset="/img/loading.gif" lazyload alt="image-20230315213908417"></p>
+<p>也就是说最多只能有512个bucket。</p>
+<blockquote>
+<p>下面介绍几个重要的函数</p>
+</blockquote>
+<blockquote>
+<p><strong>IncrGlobalDepth</strong></p>
+<ul>
+<li>我们将globaldepth加1之后，然后我们需要将拓展之后的空间的指向和前半部分一样，因为扩展之后相当于 0xxxxx 和1xxxxx 。</li>
+<li>因为directory的位置必须任何时刻都要指定一个bucket，所以我们为了方便就复制一遍，也是为了后续方便的操作</li>
+<li><strong>这个localdepth在查找的时候是没有任何用处的，他只是在insert和remove的时候，对bucket进行插入和删除的时候导致的bucket的分割和合并的时候才会有用</strong></li>
+<li><strong>但是这个localdepth保证了所有index的后localdepth都相同的index都指向同一个大小为localdepth的bucket</strong>，比如localdepth为2的bucket，那么它可能被（000，100） 或者（010，110）这些组合指着（此时globaldepth 为3）.</li>
+<li><strong>而这个globaldepth是很有用的，首先在查询的时候，我们要使用它作为掩码长度，来确定hash（key）所对应的在directory的index，一个是用来和localdepth比较判断是否拓展和收缩之类的。</strong></li>
+</ul>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 给directory 的global depth 加1，也就是grow，将原来的桶的索引的个数增加一倍</span><br><span class="hljs-comment"> * 增加一倍后，然后将之前的数都复制到新拓展的索引中</span><br><span class="hljs-comment"> * 至于bucketpage分裂和重映射不属于这个函数</span><br><span class="hljs-comment"> * </span><br><span class="hljs-comment"> * 1. 先增长</span><br><span class="hljs-comment"> * 2. 再分裂重映射</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">HashTableDirectoryPage::IncrGlobalDepth</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-comment">// assert(global_depth_ &lt; MAX_BUCKET_DEPTH);</span><br>  <span class="hljs-type">int</span> new_start_depth = <span class="hljs-number">1</span> &lt;&lt; global_depth_;<br>  <span class="hljs-type">int</span> old = new_start_depth;<br><br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; old; i++, new_start_depth++) &#123;<br>    bucket_page_ids_[new_start_depth] = bucket_page_ids_[i];<br>    <span class="hljs-comment">// 这个是将directory 扩容后加入，将新拓展的地方依然指向同一个bucket；例如00 和10指向同一个</span><br>    <span class="hljs-comment">// 将桶信息复制到新拓展的地方</span><br>    local_depths_[new_start_depth] = local_depths_[i];<br>  &#125;<br>  global_depth_++;<br>  <span class="hljs-keyword">return</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p><strong>GetSplitImageIndex</strong> : 这个函数很重要，他是在进行insertsplit和removemerge时获取镜像index</p>
+<ul>
+<li>我们在insert时，可能会导致当前的bucket超出了容量，所以此时我们应该进行再申请一个bucket来和原来的bucket共同装那些内容。</li>
+<li>此时这两个页的localdepth都应该加一，因为我们当时就是将在directory中的index后面localdepth长度的相同的都指向了原来的那个bucket，现在我们又申请了一个页，我们就想将之前的那些内容根据 原localdepth+1来将index分类，就分成了 0xx 和 1xx 这两类了，一个放在旧的bucket中，一个放在新的bucket中。</li>
+<li>我们插入的那个key-value对应的index假如localdepth+1位为0，那么我们就是通过这个函数找到localdepth + 1 处 为1的index，<strong>但是这两个index必须其他位都相同</strong>，<strong>只有这个不相同</strong>，<strong>因为这样才是最近的一个，因为我们要根据这两个去将其他index后面原local depth长度的和要插入的一致的都找出来，将这些指向原来的bucket的index重新指向这两个bucket，0开头的指向原来的，1开头的指向新的。</strong></li>
+</ul>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 他的作用是获取兄弟bucket的bucket_idx(也就是所谓的splitImage), 也就是说,</span><br><span class="hljs-comment"> * 我们要将传入的bucket_idx的local_depth的最高位取反后返回</span><br><span class="hljs-comment"> * </span><br><span class="hljs-comment"> * 在extendible hash index中，当插入导致bucket分裂或者移除导致bucket合并时，</span><br><span class="hljs-comment"> * 我们都要找到待分离或合并的bucket的另一半。</span><br><span class="hljs-comment"> *  它找到了一定是最近的那个，方便我们往两边找</span><br><span class="hljs-comment"> * https://www.cnblogs.com/huasyuan/p/16611858.html</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">uint32_t</span> <span class="hljs-title">HashTableDirectoryPage::GetSplitImageIndex</span><span class="hljs-params">(<span class="hljs-type">uint32_t</span> bucket_idx)</span> </span>&#123;<br>  <span class="hljs-comment">// 合并时找最近的另一半</span><br>  <span class="hljs-type">uint32_t</span> local_depth = local_depths_[bucket_idx];<br>  <span class="hljs-keyword">return</span> bucket_idx ^ (<span class="hljs-number">1</span> &lt;&lt; (local_depth - <span class="hljs-number">1</span>));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="HashTableBucketPage"><a href="#HashTableBucketPage" class="headerlink" title="HashTableBucketPage"></a>HashTableBucketPage</h3><p>这个就是我们上面说的bucket，它里面包含了我们要存储的内容，通过这个类我们可以获取指定value并返回。</p>
+<p>它里面有几个重要的参数，来表示这个page空间的使用情况，通过一个个bit表示这个page空间value空间是不是被占用了。我们在这个空间里保存的value是带上了key 即 pair&lt;key,value&gt;</p>
+<p><img src="/2023/04/13/CMU-15445/image-20230315224019514.png" srcset="/img/loading.gif" lazyload alt="image-20230315224019514"></p>
+<blockquote>
+<p>几个比较重要的函数：</p>
+</blockquote>
+<blockquote>
+<p>GetValue ： 获取一个值从这个page中</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> KeyType, <span class="hljs-keyword">typename</span> ValueType, <span class="hljs-keyword">typename</span> KeyComparator&gt;<br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">HASH_TABLE_BUCKET_TYPE::GetValue</span><span class="hljs-params">(KeyType key, KeyComparator cmp, std::vector&lt;ValueType&gt; *result)</span> </span>&#123;<br>  <span class="hljs-type">bool</span> res = <span class="hljs-literal">false</span>;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">size_t</span> i = <span class="hljs-number">0</span>; i &lt; BUCKET_ARRAY_SIZE; ++i) &#123;<br>    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">IsReadable</span>(i) &amp;&amp; <span class="hljs-built_in">cmp</span>(key, array_[i].first) == <span class="hljs-number">0</span>) &#123;<br>      result-&gt;<span class="hljs-built_in">push_back</span>(array_[i].second);<br>      res = <span class="hljs-literal">true</span>;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">return</span> res;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>插入一个pair&lt;key,value&gt;</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> KeyType, <span class="hljs-keyword">typename</span> ValueType, <span class="hljs-keyword">typename</span> KeyComparator&gt;<br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">HASH_TABLE_BUCKET_TYPE::Insert</span><span class="hljs-params">(KeyType key, ValueType value, KeyComparator cmp)</span> </span>&#123;<br>  <span class="hljs-type">int64_t</span> free_slot = <span class="hljs-number">-1</span>;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">size_t</span> i = <span class="hljs-number">0</span>; i &lt; BUCKET_ARRAY_SIZE; i++) &#123;<br>    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">IsReadable</span>(i)) &#123;<br>      <span class="hljs-keyword">if</span> (<span class="hljs-built_in">cmp</span>(key, array_[i].first) == <span class="hljs-number">0</span> &amp;&amp; value == array_[i].second) &#123;<br>        <span class="hljs-comment">// already existed the same key &amp; value</span><br>        <span class="hljs-comment">//                LOG_DEBUG(&quot;Same kv&quot;);</span><br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>      &#125;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (free_slot == <span class="hljs-number">-1</span>) &#123;<br>      free_slot = i;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> (free_slot == <span class="hljs-number">-1</span>) &#123;<br>    <span class="hljs-comment">// is full</span><br>    <span class="hljs-built_in">LOG_DEBUG</span>(<span class="hljs-string">&quot;Bucket is full&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  <span class="hljs-comment">// insert it and return true</span><br>  <span class="hljs-built_in">SetOccupied</span>(free_slot);<br>  <span class="hljs-built_in">SetReadable</span>(free_slot);<br>  array_[free_slot] = <span class="hljs-built_in">MappingType</span>(key, value);<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="ExtendibleHashTable"><a href="#ExtendibleHashTable" class="headerlink" title="ExtendibleHashTable"></a>ExtendibleHashTable</h3><p>这个就是最重要的类了，它提供了一系列方法用来操作这个directory和bucket</p>
+<blockquote>
+<p>下面我们就介绍一个很重要的函数，读取，插入和删除。</p>
+</blockquote>
+<h4 id="GetValue"><a href="#GetValue" class="headerlink" title="GetValue"></a>GetValue</h4><blockquote>
+<p><code>bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &amp;key, std::vector&lt;ValueType&gt; *result)</code></p>
+</blockquote>
+<blockquote>
+<p>为了保证我们的可拓展hash表是线程安全的，所以我们在每个方法内部都必须上一个锁。</p>
+<p>防止同一个索引的hash表被不同的线程拿到，从而导致directory和bucket出错，其实主要是directory出错，因为我们会在拿到bucket时，在对这个page上锁。</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs c++"><br><span class="hljs-comment">/*****************************************************************************</span><br><span class="hljs-comment"> * SEARCH  获取key对应的value，</span><br><span class="hljs-comment"> * 先获取这个directory，然后根据用hash，得到key对应的bucket index，然后获取到</span><br><span class="hljs-comment"> * bucket_page_id，然后拿到这个页，然后遍历这个页中的array，查找key对应的pair，然后放进这个result中</span><br><span class="hljs-comment"> * 在获取某个bucketpage的页的时候，会加一个读锁，防止别的进程修改？</span><br><span class="hljs-comment"> *****************************************************************************/</span><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> KeyType, <span class="hljs-keyword">typename</span> ValueType, <span class="hljs-keyword">typename</span> KeyComparator&gt;<br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">HASH_TABLE_TYPE::GetValue</span><span class="hljs-params">(Transaction *transaction, <span class="hljs-type">const</span> KeyType &amp;key, std::vector&lt;ValueType&gt; *result)</span> </span>&#123;<br>  table_latch_.<span class="hljs-built_in">RLock</span>();  <span class="hljs-comment">// 申请一个读锁</span><br>  <span class="hljs-comment">// 这里我们pin了这个页</span><br>  HashTableDirectoryPage *dir = <span class="hljs-built_in">FetchDirectoryPage</span>();<br>  <span class="hljs-comment">// uint32_t bucket_idx = Hash(key);</span><br>  <span class="hljs-type">page_id_t</span> bucket_pageid = <span class="hljs-built_in">KeyToPageId</span>(key, dir);<br>  <span class="hljs-comment">// 这里我们pin了这个页</span><br>  Page *bucket_page = <span class="hljs-built_in">FetchBucketPage</span>(bucket_pageid);<br><br>  bucket_page-&gt;<span class="hljs-built_in">RLatch</span>();  <span class="hljs-comment">// 申请一个page 的读锁</span><br>  HASH_TABLE_BUCKET_TYPE *bucket = <span class="hljs-built_in">RetrieveBucket</span>(bucket_page);<br>  <span class="hljs-type">bool</span> res =  bucket-&gt;<span class="hljs-built_in">GetValue</span>(key, comparator_, result);<br>  bucket_page-&gt;<span class="hljs-built_in">RUnlatch</span>();  <span class="hljs-comment">// 释放这个page的读锁</span><br>  <span class="hljs-comment">// 对bucketpage要进行unpin操作</span><br>  <span class="hljs-comment">// 对dirpage要进行unpin操作</span><br>  <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(bucket_pageid, <span class="hljs-literal">false</span>));<br>  <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(dir-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">false</span>));<br>  table_latch_.<span class="hljs-built_in">RUnlock</span>();  <span class="hljs-comment">// 释放锁</span><br>  <span class="hljs-keyword">return</span> res;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="Insert"><a href="#Insert" class="headerlink" title="Insert"></a>Insert</h4><blockquote>
+<p><code>bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &amp;key, const ValueType &amp;value)</code></p>
+</blockquote>
+<blockquote>
+<p>基本流程：</p>
+<ul>
+<li>首先我们先获取这个directory，然后根据hash函数和globalmask获取index，然后就能够获取这个要插入的bucket了</li>
+<li>但是我们如果这个bucket满了，我们需要进行重新申请一个page，然后重新将这个所有的在旧的bucket的，根据hash &amp; mask(旧localdepth + 1)分成了两类，一类放在旧的bucket中，一类放在新的bucket中。</li>
+<li>具体细节在insertsplit函数中</li>
+</ul>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs c++"><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> KeyType, <span class="hljs-keyword">typename</span> ValueType, <span class="hljs-keyword">typename</span> KeyComparator&gt;<br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">HASH_TABLE_TYPE::Insert</span><span class="hljs-params">(Transaction *transaction, <span class="hljs-type">const</span> KeyType &amp;key, <span class="hljs-type">const</span> ValueType &amp;value)</span> </span>&#123;<br>  <span class="hljs-comment">// LOG_INFO(&quot;lllllllllllllllllllllllllllllllllllllllllllll\n&quot;);</span><br>  <span class="hljs-comment">// 这个锁是用来针对这个整个对象来说的，因为这个对象是线程共享的，所以必须保证所有的方法都是线程安全的</span><br>  <span class="hljs-comment">// 别的不能执行insert操作，但是为什么还要给page锁呢，因为别的非insert函数可能会执行此page的变更操作</span><br>  table_latch_.<span class="hljs-built_in">RLock</span>();<br>  HashTableDirectoryPage *dir = <span class="hljs-built_in">FetchDirectoryPage</span>();  <span class="hljs-comment">// 获取这个directory，然后pin</span><br>  <span class="hljs-type">page_id_t</span> bucket_pageid = <span class="hljs-built_in">KeyToPageId</span>(key, dir);<br>  Page *bucket_page = <span class="hljs-built_in">FetchBucketPage</span>(bucket_pageid);  <span class="hljs-comment">// 获取这个桶对应的page</span><br>  bucket_page-&gt;<span class="hljs-built_in">WLatch</span>();  <span class="hljs-comment">// 获取这个page的写锁，保证别的地方不能操作这个page对象</span><br>  <span class="hljs-comment">// 上面那个锁，假如此时global = 2；local = 1；然后00 和 10 都是指向了同一个page，</span><br>  <span class="hljs-comment">// 但是在这个等待page锁的时候，别的Insert操作导致这个page满了分裂了 ？？？？？？ 我们都说了上面别的线程不能insert了</span><br>  <span class="hljs-comment">// 假如我们这个k解析的是10，但是我们之前获取的肯定是00对应的page，这个时候如果直接插，就会出错，</span><br>  <span class="hljs-comment">// 因为分列导致10对应的pageid变了，就是这个k应该插入到新分裂的那个页面</span><br>  <span class="hljs-comment">// 所以我们要不要加一个判断 再从dir中获取一下这个k对应pageid，如果两次都相等，则没事，</span><br>  <span class="hljs-comment">// 如果两次不等，则重新获取页，重新等待锁，重新判断，直到相同</span><br>  <span class="hljs-comment">// 上面可以叫做double check</span><br>  <span class="hljs-comment">// 但是会出现上面这个问题吗？因为我们锁住了这个insert函数，所以就不会有别的线程进行insert，所以不会。</span><br>  <span class="hljs-comment">// 但是！如果有可能因为这个page删除，合并了而出错，所以要不要double-check呢？</span><br>  <span class="hljs-comment">// 如果为了保险起见，我们可以不锁这个insert了，直接使用double-check就行，但是我这里没用</span><br>  HASH_TABLE_BUCKET_TYPE *bucket = <span class="hljs-built_in">RetrieveBucket</span>(bucket_page);  <span class="hljs-comment">// 转换成HASH_TABLE_BUCKET_TYPE</span><br>  <span class="hljs-keyword">if</span> (!bucket-&gt;<span class="hljs-built_in">IsFull</span>()) &#123;<br>    <span class="hljs-comment">// 判断这个bucket页是否已经满了</span><br>    <span class="hljs-type">bool</span> res = bucket-&gt;<span class="hljs-built_in">Insert</span>(key, value, comparator_);<br>    bucket_page-&gt;<span class="hljs-built_in">WUnlatch</span>();  <span class="hljs-comment">// 对这个page的锁释放</span><br>    <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(bucket_pageid, <span class="hljs-literal">true</span>));  <span class="hljs-comment">// 对这个bucketpage执行unpin，并标志这个page是个脏页</span><br>    <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(dir-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">false</span>));  <span class="hljs-comment">// 对这个diretorypage进行unpin操作</span><br>    table_latch_.<span class="hljs-built_in">RUnlock</span>();<br>    <span class="hljs-keyword">return</span> res;<br>  &#125;<br>  <span class="hljs-comment">// 说明这个bucket已经满了，那么就需要进行分裂</span><br>  <span class="hljs-comment">// 现在要先解锁，？？？？要解锁吗？</span><br>  bucket_page-&gt;<span class="hljs-built_in">WUnlatch</span>();  <span class="hljs-comment">// 对这个page的锁释放</span><br>  <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(bucket_pageid, <span class="hljs-literal">false</span>));  <span class="hljs-comment">// 对这个bucketpage执行unpin，并标志这个page不是脏页</span><br>  <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(dir-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">false</span>));  <span class="hljs-comment">// 对这个diretorypage进行unpin操作</span><br>  table_latch_.<span class="hljs-built_in">RUnlock</span>();<br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">SplitInsert</span>(transaction, key, value);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="SplitInsert"><a href="#SplitInsert" class="headerlink" title="SplitInsert"></a>SplitInsert</h4><blockquote>
+<p>这个里面比较重要的一块就是将所有的指向之前的bucket的index，重新指向旧的和新的bucket中。</p>
+<ul>
+<li>假如我们要插入key-value时，此时value对应的是index，然后这个index里指向page1（它的localdepth），<strong>那么这个directory中所有的index后localdepth个位和这个key对应的index相同的都是指向这个bucket。</strong></li>
+<li>但是现在这个时候因为这个bucketpage满了，所以我们要重新申请一个bucketpage来将这些值重新放在旧的bucketpage和新的bucketpage中。</li>
+<li>我们先重新设置上面所有指向旧的bucketpage的index给分成两类，一类指向旧的bucketpage，一类指向新的bucketpage</li>
+<li>如何划分呢？假如旧的bucketpage的localdepth是a，然后a&lt; gloabdepth（先不考虑给directory 扩容）；我们申请完page后，这两个page的localdepth都是旧的localdepth + 1；</li>
+<li><strong>所以我们要找到所有index 后localdepth 和key对应的index的后localdepth，然后index的localdepth+1位置为0和1都找到；（因为这些之前肯定都是指向同一个page，现在我们的localdepth+1了，要后localdepth +1 位相同放在同一个页面内）</strong></li>
+<li>所以我们先通过<code>splitimage</code>函数找到镜像的indeximage，然后以1 &lt;&lt; (localdepth+1)(旧的)为等差值，来找到所有 和key对应的index后（localdepth +1）位相同的index 以及 和indeximage后（localdepth +1）位相同的index，然后分别指向旧的page和新的page；</li>
+<li>这样我们旧将之前的页面给分割好了，然后我们就逐个的将之前的值重新hash一下放到各个对应的页中。</li>
+</ul>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 这个是如果要插入的bucket满了，那么就分裂</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> KeyType, <span class="hljs-keyword">typename</span> ValueType, <span class="hljs-keyword">typename</span> KeyComparator&gt;<br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">HASH_TABLE_TYPE::SplitInsert</span><span class="hljs-params">(Transaction *transaction, <span class="hljs-type">const</span> KeyType &amp;key, <span class="hljs-type">const</span> ValueType &amp;value)</span> </span>&#123;<br>  table_latch_.<span class="hljs-built_in">WLock</span>();  <span class="hljs-comment">// 获取这个对象的全局锁</span><br>  HashTableDirectoryPage *dir = <span class="hljs-built_in">FetchDirectoryPage</span>();  <span class="hljs-comment">// 获取dir</span><br>  <span class="hljs-type">int64_t</span> split_bucket_index = <span class="hljs-built_in">KeyToDirectoryIndex</span>(key, dir);  <span class="hljs-comment">// 获取这个key对应的dirctory的index，也是要分裂的下标</span><br>  <span class="hljs-type">uint32_t</span> split_bucket_depth = dir-&gt;<span class="hljs-built_in">GetLocalDepth</span>(split_bucket_index);  <span class="hljs-comment">// 获取这个要分割的bucket的深度</span><br>  <span class="hljs-keyword">if</span> (split_bucket_depth &gt;= MAX_BUCKET_DEPTH) &#123;<br>    <span class="hljs-comment">// 表示已经满了，无法分割了</span><br>    <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(dir-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">false</span>));<br>    table_latch_.<span class="hljs-built_in">WUnlock</span>();<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-keyword">if</span> (split_bucket_depth == dir-&gt;<span class="hljs-built_in">GetGlobalDepth</span>()) &#123;<br>    <span class="hljs-comment">// 给dir的entry grow一倍</span><br>    dir-&gt;<span class="hljs-built_in">IncrGlobalDepth</span>();<br>  &#125;<br>  <span class="hljs-comment">// 获取这个要分割的桶页</span><br>  <span class="hljs-type">page_id_t</span> split_bucket_page_id = <span class="hljs-built_in">KeyToPageId</span>(key, dir);<br>  Page *split_page = <span class="hljs-built_in">FetchBucketPage</span>(split_bucket_page_id);<br>  split_page-&gt;<span class="hljs-built_in">WLatch</span>();  <span class="hljs-comment">// 给这个页上锁</span><br>  HASH_TABLE_BUCKET_TYPE *split_bucket = <span class="hljs-built_in">RetrieveBucket</span>(split_page);<br><br>  MappingType *origin_array = split_bucket-&gt;<span class="hljs-built_in">GetArrayCopy</span>();<br>  <span class="hljs-type">uint32_t</span> origin_array_size = split_bucket-&gt;<span class="hljs-built_in">NumReadable</span>();<br>  split_bucket-&gt;<span class="hljs-built_in">Clear</span>();  <span class="hljs-comment">// 给原来的要分割的页全部清理干净，因为后面要把所有的元素重新进行散列到这两个新的页中</span><br><br>  <span class="hljs-comment">// 然后将开始申请一个新的页作为桶页分割后存储的页</span><br>  <span class="hljs-type">page_id_t</span> image_bunket_page_id;<br>  <span class="hljs-comment">// 这个新获得的页需要加锁吗</span><br>  HASH_TABLE_BUCKET_TYPE *image_bucket = <span class="hljs-built_in">RetrieveBucket</span>(<br>    <span class="hljs-built_in">AssertPage</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">NewPage</span>(&amp;image_bunket_page_id)));<br><br>  <span class="hljs-comment">// 增加这个localdepth</span><br>  dir-&gt;<span class="hljs-built_in">IncrLocalDepth</span>(split_bucket_index);<br>  <span class="hljs-comment">// 获取他的截掉localdepth长度后高位相同的另一个，比如000和010，localdepth为2，他们指向同一个bucketpage，这个方法也是找到另一个</span><br>  <span class="hljs-type">uint32_t</span> split_image_bucket_index = dir-&gt;<span class="hljs-built_in">GetSplitImageIndex</span>(split_bucket_index);<br>  dir-&gt;<span class="hljs-built_in">SetLocalDepth</span>(split_image_bucket_index, dir-&gt;<span class="hljs-built_in">GetLocalDepth</span>(split_bucket_index));  <span class="hljs-comment">// 设置这个新的页的localdepth</span><br>  dir-&gt;<span class="hljs-built_in">SetBucketPageId</span>(split_image_bucket_index, image_bunket_page_id);  <span class="hljs-comment">// 在dir中设置这个bucket对应的pageid</span><br><br>  <span class="hljs-comment">/**</span><br><span class="hljs-comment">   * 上面我们完成了新bucketpage的申请，并且，将镜像index指向新的页（ 比如splitpageindex = 110，那么镜像的那个就是100 ，</span><br><span class="hljs-comment">   * 对于000和010还没映射，反正最后应该110和010指向旧页，100和000指向新页</span><br><span class="hljs-comment">   * 也就是dir中的split_image_bucket_index存的是新的页id，现在老页和新页都没有数据）</span><br><span class="hljs-comment">   * 但是，我们的GetSplitImageIndex只是获得了截掉localdepth长度的相同的另一个，</span><br><span class="hljs-comment">   * 对于比如100和110，他们之前也指向这个分割的也，也就是之前的页的localdepth是1，</span><br><span class="hljs-comment">   * 现在分割了变成了2，那么000和100指向旧页，010和110指向新页</span><br><span class="hljs-comment">   * 我们在上面只完成了000和010index的设置，对于100和110，甚至1000，1010等都指向这个分割的页，</span><br><span class="hljs-comment">   * 那么我们现在要对这些index对应的pageid重新设置，要么是新页，要么是老页</span><br><span class="hljs-comment">   */</span><br>  <span class="hljs-comment">// 这个diff是用来以localdepth个0和一个高位1组成的单位，因为00和100，1000，1100 的差距都是100，</span><br>  <span class="hljs-comment">// 假如我们这个可以对应的是100，localdepth现在是2，globaldepth3，</span><br>  <span class="hljs-comment">// 经过上面我们只是给100赋了老的页面id和110赋了新的页面的id，所以对于000和010没有设置，</span><br>  <span class="hljs-comment">// 因为最开始000，010，100，110都是指向一个localdepth为1的bucketpage，分裂后localdepth变成了2</span><br>  <span class="hljs-comment">// 下面我们就设置这些没有设置的index</span><br>  <span class="hljs-comment">// ---------------------------------------</span><br>  <span class="hljs-type">uint32_t</span> diff = <span class="hljs-number">1</span> &lt;&lt; dir-&gt;<span class="hljs-built_in">GetLocalDepth</span>(split_bucket_index);<br>  <span class="hljs-comment">// 先设置和split_bucket_index指向的同一个页面的index</span><br>  <span class="hljs-type">uint32_t</span> i = split_bucket_index;<br>  <span class="hljs-keyword">while</span> (i &gt;= <span class="hljs-number">0</span>) &#123;<br>    dir-&gt;<span class="hljs-built_in">SetLocalDepth</span>(i, dir-&gt;<span class="hljs-built_in">GetLocalDepth</span>(split_bucket_index));<br>    dir-&gt;<span class="hljs-built_in">SetBucketPageId</span>(i, split_bucket_page_id);<br>    <span class="hljs-keyword">if</span> (i &lt; diff) &#123;<br>      <span class="hljs-keyword">break</span>;  <span class="hljs-comment">// 防止为负数</span><br>    &#125;<br>    i -= diff;<br>  &#125;<br>  <span class="hljs-comment">// 再设置和split_image_bucket_index指向同一个页面的index</span><br>  i = split_image_bucket_index;<br>  <span class="hljs-keyword">while</span> (i &gt;= <span class="hljs-number">0</span>) &#123;<br>    dir-&gt;<span class="hljs-built_in">SetLocalDepth</span>(i, dir-&gt;<span class="hljs-built_in">GetLocalDepth</span>(split_bucket_index));<br>    dir-&gt;<span class="hljs-built_in">SetBucketPageId</span>(i, image_bunket_page_id);<br>    <span class="hljs-keyword">if</span> (i &lt; diff) &#123;<br>      <span class="hljs-keyword">break</span>;  <span class="hljs-comment">// 防止为负数</span><br>    &#125;<br>    i -= diff;<br>  &#125;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">uint32_t</span> i =split_bucket_index; i &lt; dir-&gt;<span class="hljs-built_in">Size</span>(); i+=diff) &#123;<br>    dir-&gt;<span class="hljs-built_in">SetLocalDepth</span>(i, dir-&gt;<span class="hljs-built_in">GetLocalDepth</span>(split_bucket_index));<br>    dir-&gt;<span class="hljs-built_in">SetBucketPageId</span>(i, split_bucket_page_id);<br>  &#125;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">uint32_t</span> i = split_bucket_index; i &lt; dir-&gt;<span class="hljs-built_in">Size</span>(); i+=diff) &#123;<br>    dir-&gt;<span class="hljs-built_in">SetLocalDepth</span>(i, dir-&gt;<span class="hljs-built_in">GetLocalDepth</span>(split_bucket_index));<br>    dir-&gt;<span class="hljs-built_in">SetBucketPageId</span>(i, image_bunket_page_id);<br>  &#125;<br>  <span class="hljs-comment">// ---------------------------------</span><br>  <span class="hljs-comment">// 现在我们完成了bucketpage的分割和所有原来指向同一个老页的都重新设置指向了新页和就页，</span><br>  <span class="hljs-comment">// 现在就是将之前旧页中的元素，重新进行散列到</span><br>  <span class="hljs-comment">// 我们这两个页面中</span><br>  <span class="hljs-type">uint32_t</span> mask = dir-&gt;<span class="hljs-built_in">GetLocalDepthMask</span>(split_bucket_index);  <span class="hljs-comment">// 肯定是获得?</span><br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">uint32_t</span> i = <span class="hljs-number">0</span> ; i &lt; origin_array_size; i++) &#123;<br>    MappingType temp = origin_array[i];<br>    <span class="hljs-type">uint32_t</span> target_bucket_index = <span class="hljs-built_in">Hash</span>(temp.first) &amp; mask;  <span class="hljs-comment">// 获取每个元素的key对应的</span><br>    <span class="hljs-type">page_id_t</span> target_bucket_page_id = dir-&gt;<span class="hljs-built_in">GetBucketPageId</span>(target_bucket_index);<br>    <span class="hljs-built_in">assert</span>(target_bucket_page_id == split_bucket_page_id || target_bucket_page_id == image_bunket_page_id);<br>    <span class="hljs-keyword">if</span> (target_bucket_page_id == split_bucket_page_id) &#123;<br>      <span class="hljs-built_in">assert</span>(split_bucket-&gt;<span class="hljs-built_in">Insert</span>(temp.first, temp.second, comparator_));<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>      <span class="hljs-built_in">assert</span>(image_bucket-&gt;<span class="hljs-built_in">Insert</span>(temp.first, temp.second, comparator_));<br>    &#125;<br>  &#125;<br>  <span class="hljs-comment">// 到这里就完成了bucketpage的split</span><br>  <span class="hljs-keyword">delete</span>[] origin_array;<br>  split_page-&gt;<span class="hljs-built_in">WUnlatch</span>();  <span class="hljs-comment">// 给这个页解锁</span><br>  <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(dir-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">true</span>));<br>  <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(split_bucket_page_id, <span class="hljs-literal">true</span>));<br>  <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(image_bunket_page_id, <span class="hljs-literal">true</span>));<br>  table_latch_.<span class="hljs-built_in">WUnlock</span>();<br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">Insert</span>(transaction, key, value);  <span class="hljs-comment">// 重新将这个值插入到桶中</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>上面我们完成了数据在hash表中的插入</p>
+<p>下面我们完成数据在hash表中的删除</p>
+</blockquote>
+<h4 id="Remove"><a href="#Remove" class="headerlink" title="Remove"></a>Remove</h4><blockquote>
+<p>基本思路：</p>
+<ul>
+<li>拿到directory，然后根据key和globaldepth找到index，然后找到bucketpage</li>
+<li>然后对这个page进行操作</li>
+<li>如果这个page删除完这个元素后，我们可以将这个page给放回freelist中</li>
+</ul>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> KeyType, <span class="hljs-keyword">typename</span> ValueType, <span class="hljs-keyword">typename</span> KeyComparator&gt;<br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">HASH_TABLE_TYPE::Remove</span><span class="hljs-params">(Transaction *transaction, <span class="hljs-type">const</span> KeyType &amp;key, <span class="hljs-type">const</span> ValueType &amp;value)</span> </span>&#123;<br>  table_latch_.<span class="hljs-built_in">RLock</span>();<br><br>  HashTableDirectoryPage *dir = <span class="hljs-built_in">FetchDirectoryPage</span>();<br>  <span class="hljs-type">page_id_t</span> bucket_page_id = <span class="hljs-built_in">KeyToPageId</span>(key, dir);<br>  Page *page = <span class="hljs-built_in">FetchBucketPage</span>(bucket_page_id);<br>  page-&gt;<span class="hljs-built_in">WLatch</span>();<br>  HASH_TABLE_BUCKET_TYPE *bucket = <span class="hljs-built_in">RetrieveBucket</span>(page);<br>  <span class="hljs-type">bool</span> res = bucket-&gt;<span class="hljs-built_in">Remove</span>(key, value, comparator_);<br>  <span class="hljs-comment">// 如果bucket空了，那么就将他的image bucket page进行merge</span><br>  <span class="hljs-keyword">if</span> (bucket-&gt;<span class="hljs-built_in">IsEmpty</span>()) &#123;<br>    page-&gt;<span class="hljs-built_in">WUnlatch</span>();<br>    <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(bucket_page_id, <span class="hljs-literal">true</span>));<br>    <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(dir-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">false</span>));<br>    table_latch_.<span class="hljs-built_in">RUnlock</span>();<br>    <span class="hljs-built_in">Merge</span>(transaction, key, value);<br>    <span class="hljs-keyword">return</span> res;<br>  &#125;<br>  page-&gt;<span class="hljs-built_in">WUnlatch</span>();<br>  <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(bucket_page_id, <span class="hljs-literal">true</span>));<br>  <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(dir-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">false</span>));<br>  table_latch_.<span class="hljs-built_in">RUnlock</span>();<br>  <span class="hljs-keyword">return</span> res;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>因为牵扯页面的merge，我们下面这个函数实现</p>
+</blockquote>
+<h4 id="Merge"><a href="#Merge" class="headerlink" title="Merge"></a>Merge</h4><blockquote>
+<p>基本思路：</p>
+<ul>
+<li>这个merge相当于上面的split的逆过程，split函数分割后再将之前的index重新指向这两个page，然后将原来的元素重新散落到这两个page中</li>
+<li>我们这个merge，就是将指向被删除的page的index给重新指向imageindex指向的page中</li>
+<li>首先我们找到这个imageindex，就是localdepth位取反的值，然后根据这index去加减1&lt;&lt; localdepth 位找到所有的指向要删除的page的index重新指向imageindex指向的imagepage中。</li>
+</ul>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs c++">Page* merge_bucket_page = <span class="hljs-built_in">FetchBucketPage</span>(merge_bucket_page_id);<br>  merge_bucket_page-&gt;<span class="hljs-built_in">RLatch</span>();<br>  HASH_TABLE_BUCKET_TYPE *bucket = <span class="hljs-built_in">RetrieveBucket</span>(merge_bucket_page);<br>  <span class="hljs-keyword">if</span> (!bucket-&gt;<span class="hljs-built_in">IsEmpty</span>()) &#123;<br>    merge_bucket_page-&gt;<span class="hljs-built_in">RUnlatch</span>();<br>    <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(dir-&gt;<span class="hljs-built_in">GetPageId</span>(), <span class="hljs-literal">false</span>));<br>    <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(merge_bucket_page_id, <span class="hljs-literal">false</span>));<br>    table_latch_.<span class="hljs-built_in">WUnlock</span>();<br>    <span class="hljs-keyword">return</span>;<br>  &#125;<br>  merge_bucket_page-&gt;<span class="hljs-built_in">RUnlatch</span>();<br>  <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">UnpinPage</span>(merge_bucket_page_id, <span class="hljs-literal">false</span>));<br>  <span class="hljs-built_in">assert</span>(buffer_pool_manager_-&gt;<span class="hljs-built_in">DeletePage</span>(merge_bucket_page_id));<br>  <span class="hljs-type">page_id_t</span> image_bucket_page_id = dir-&gt;<span class="hljs-built_in">GetBucketPageId</span>(image_bucket_index);<br>  dir-&gt;<span class="hljs-built_in">SetBucketPageId</span>(merge_bucket_index, image_bucket_page_id);<br>  dir-&gt;<span class="hljs-built_in">DecrLocalDepth</span>(merge_bucket_index);<br>  dir-&gt;<span class="hljs-built_in">DecrLocalDepth</span>(image_bucket_index);<br>  <span class="hljs-built_in">assert</span>(dir-&gt;<span class="hljs-built_in">GetLocalDepth</span>(merge_bucket_index) == dir-&gt;<span class="hljs-built_in">GetLocalDepth</span>(image_bucket_index));<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">uint32_t</span> i = <span class="hljs-number">0</span>; i &lt; dir-&gt;<span class="hljs-built_in">Size</span>(); i++) &#123;<br>    <span class="hljs-keyword">if</span> (dir-&gt;<span class="hljs-built_in">GetBucketPageId</span>(i) == merge_bucket_page_id || dir-&gt;<span class="hljs-built_in">GetBucketPageId</span>(i) == image_bucket_page_id) &#123;<br>      dir-&gt;<span class="hljs-built_in">SetBucketPageId</span>(i, image_bucket_page_id);<br>      dir-&gt;<span class="hljs-built_in">SetLocalDepth</span>(i, dir-&gt;<span class="hljs-built_in">GetLocalDepth</span>(merge_bucket_index));<br>    &#125;<br>  &#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>几个关键的函数我们就介绍完了，现在我们来总结一下这个难点</p>
+</blockquote>
+<ul>
+<li>首先是对于这个extendible hash table 的原理必须掌握清除，对于它的插入、删除这两个操作的原理必须掌握的很清楚才能够写出代码来。特别是这个<code>SplitImageIndex</code>这个函数的意义。</li>
+<li>对于这个hash表的各个函数必须是线程安全的，所以要对每个函数进行加锁处理</li>
+</ul>
+<h2 id="project3-query-executing"><a href="#project3-query-executing" class="headerlink" title="project3 query executing"></a>project3 query executing</h2><p><img src="/2023/04/13/CMU-15445/image-20230222154427720.png" srcset="/img/loading.gif" lazyload alt="image-20230222154427720"></p>
+<h3 id="Executor–执行器"><a href="#Executor–执行器" class="headerlink" title="Executor–执行器"></a>Executor–执行器</h3><p>一个SQL语法句子会经过parser和binder生成一个查询计划数Planner</p>
+<p>例如：<code>SELECT t1.y, t2.x FROM t1 INNER JOIN t2 ON t1.x = t2.y;</code></p>
+<p>生成的Planner树就是</p>
+<img src="/2023/04/13/CMU-15445/image-20230222154706379.png" srcset="/img/loading.gif" lazyload alt="image-20230222154706379" style="zoom:50%;">
+
+
+
+<p>其中查询计划规定了数据的流向，一般是从底向上流动，然后根节点负责输出</p>
+<p>生成palnner后，会经过优化器来优化计划树，一般来说，Planner生成的是Logical plan node，但是经过optimizer则生成的是physical plan node ，具体的例子就是join，在 Planner 生成的查询计划中，Join 就是 Join。在 Optimizer 生成的查询计划中，Join 会被优化成具体的 HashJoin 或 NestedIndexJoin 等等。在 Bustub 中，并不区分 Logical Plan Node 和 Physical Plan Node。Planner 会直接生成 Physical Plan Node。</p>
+<p>一般优化器的实现算法两个，一个是基于cost（cost-based），一个是基于rule（rule-based）.</p>
+<blockquote>
+<p>executor–执行算子</p>
+</blockquote>
+<p>在拿到Optimizer生成的具体执行计划后，我们需要将plan node替换成一个个真实可以执行的executor，也就是用executor替换plannode。生成一个执行计划树</p>
+<p>每一个executor就是对pannode的封装和计划操作。</p>
+<p>算子的执行有三种模型，</p>
+<ul>
+<li>Iterator Model，或 Pipeline Model，或火山模型。每个算子都有 <code>Init()</code> 和 <code>Next()</code> 两个方法。<code>Init()</code> 对算子进行初始化工作。<code>Next()</code> 则是向下层算子请求下一条数据。当 <code>Next()</code> 返回 false 时，则代表下层算子已经没有剩余数据，迭代结束。可以看到，火山模型一次调用请求一条数据，占用内存较小，但函数调用开销大，特别是虚函数调用造成 cache miss 等问题。</li>
+<li>Materialization Model. 所有算子立即计算出所有结果并返回。和 Iterator Model 相反。这种模型的弊端显而易见，当数据量较大时，内存占用很高。但减少了函数调用的开销。比较适合查询数据量较小的 OLTP workloads。</li>
+<li>Vectorization Model. 对上面两种模型的中和，一次调用返回一批数据。利于 SIMD 加速。目前比较先进的 OLAP 数据库都采用这种模型。</li>
+</ul>
+<p>本项目采用的就是Iterator Model模型</p>
+<h3 id="Task1-EXECUTORS"><a href="#Task1-EXECUTORS" class="headerlink" title="Task1 EXECUTORS"></a>Task1 EXECUTORS</h3><p>上面我们已经基本结束了executor，包含很多的算子，SeqScan、Insert、delete等等，采用的是火山模型，执行这个算子的时候，看看有没有子算子，如果有子算子，那么就递归的调用子算子，将子算子返回的tuples，然后一个个的处理他们，处理完成之后，返回符合条件的tuple。</p>
+<p>每个executor都负责处理 a single plan node type。它们从它们的children中接收tuples，并向它们的父亲提供tuples。</p>
+<p>本项目提供了ExecutionEngine辅助类(<code>src/include/execution/execution_engine.h</code>)。它将输入的query plan转化为一个query executor（使用的ExecutorFactory来进行创建的–工厂模式），并执行query executor直到所有result都被收集（init，然后循环调用next，将所有tuple存入result vector中）。你需要修改ExecutionEngine来捕获所有你的executors抛出的异常</p>
+<p>每个executor都有一个ExecutorContext(<code>src/include/execution/executor_context.h</code>)来维持关于query的额外信息（包含所用的log/lock/buffer/txn manager和catalog)。</p>
+<blockquote>
+<p>基本流程：</p>
+</blockquote>
+<p>执行引擎ExecutionEngine的函数Execute()传入的第一个参数就是executor对应的planNode。AbstractPlanNode是所有node的父类。第二个参数就是放executor执行完后得到的tuples。exec_ctx就是当前执行的上下文，记录了bfp，log manager，lock manager，catalog和txnmanager。</p>
+<p>首先这里有个工厂方法ExecutorFactory::CreateExecutor(),根据传入的planNode的类型，使用dynamic_cast将planNode转换成对应类型的planNode（父类指针转换成子类指针），调用对应的executor的构造函数创建executor。</p>
+<p>然后调用executor的init方法初始化executor，重复执行next方法，next返回true则将结果存入result_set并继续执行next, next返回false 则结束。所以后面的任务就是实现每个executor的init和next方法</p>
+<blockquote>
+<p>在介绍所有的具体的执行器之前，我们先理清一下这个实验中的Table的关系</p>
+</blockquote>
+<p><img src="/2023/04/13/CMU-15445/image-20230222162447042.png" srcset="/img/loading.gif" lazyload alt="image-20230222162447042"></p>
+<ul>
+<li><p>**Catalog **首先，Bustub 有一个 Catalog。Catalog 提供了一系列 API，例如 <code>CreateTable()</code>、<code>GetTable()</code> 等等。Catalog 维护了几张 hashmap，保存了 table id 和 table name 到 table info 的映射关系。table id 由 Catalog 在新建 table 时自动分配，table name 则由用户指定。</p>
+</li>
+<li><p><strong>TableInfo</strong> 这里的 table info 包含了一张 table 的 metadata，有 schema、name、id 和指向 table heap 的指针。系统的其他部分想要访问一张 table 时，先使用 name 或 id 从 Catalog 得到 table info，再访问 table info 中的 table heap。</p>
+</li>
+<li><p><strong>TableHeap</strong> 是管理 table 数据的结构，包含 <code>InsertTuple()</code>、<code>MarkDelete()</code> 一系列 table 相关操作。table heap 本身并不直接存储 tuple 数据，tuple 数据都存放在 table page 中。table heap 可能由多个 table page 组成，==仅保存其第一个 table page 的 page id==。需要访问某个 table page 时，通过 page id 经由 buffer pool 访问。</p>
+</li>
+<li><p><strong>TablePage <strong>是实际存储 table 数据的结构，父类是 page。相较于 page，table page 多了一些新的方法。</strong>table page 在 data 的开头存放了 next page id、prev page id 等信息，将多个 table page 连成一个双向链表，便于整张 table 的遍历操作。</strong>当需要新增 tuple 时，table heap 会找到当前属于自己的最后一张 table page，尝试插入，若最后一张 table page 已满，则新建一张 table page 插入 tuple。table page 低地址存放 header，tuple 从高地址也就是 table page 尾部开始插入。</p>
+</li>
+<li><p><strong>Tuple <strong>对应数据表中的一行数据。每个 tuple 都由 RID 唯一标识。</strong>RID 由 page id + slot num 构成</strong>。tuple 由 value 组成，value 的个数和类型由 table info 中的 schema 指定。</p>
+</li>
+<li><p>**Value **则是某个字段具体的值，value 本身还保存了类型信息。</p>
+</li>
+</ul>
+<p>需要注意的是，executor 本身并不保存查询计划的信息，应该通过 executor 的成员 plan 来得知该如何进行本次计算，例如 SeqScanExecutor 需要向 SeqScanPlanNode 询问自己该扫描哪张表。</p>
+<blockquote>
+<p>AbstractPlanNode</p>
+</blockquote>
+<p>这是所有PlanNode的父类。对应的有一个枚举类PlanType，表示所有可能的PlanNode类型。AbstractPlanNode只有两个成员变量，<strong>一个是output_shcema</strong>,在Next返回tuple（如果需要返回tuple）时可以根据output_schema选择输出tuple的哪几个column（相当于select）。<strong>另一个是vector children_</strong>, 里面有所有children的常量指针。</p>
+<h3 id="SEQUENTIAL-SCAN"><a href="#SEQUENTIAL-SCAN" class="headerlink" title="SEQUENTIAL SCAN"></a>SEQUENTIAL SCAN</h3><p>这个是顺序扫描，对一张表进行扫描，每次返回一个符合条件的tuple。它包含一个SeqScanPlanNode，这个plannode指明了在那张表上进行迭代，这个plannode也会包含一个predicate（也就是这个扫描计划的判断条件），比如where id &lt; 5 就是一个predicate，如果某个tuple不满足这个predicate就会跳过。（这个predicate是一个表达式）</p>
+<blockquote>
+<p><strong>sequential node</strong></p>
+</blockquote>
+<p>sequential node继承自AbstractPlanNode，多了两个私有变量。一个是predicate，是用来过滤不符合条件的tuple。比如where id &lt; 5 就是一个predicate。另一个变量是table_oid_,指明了要扫描的表的id</p>
+<blockquote>
+<p>具体实现</p>
+</blockquote>
+<p>因为我们是要扫描一张表，所以我们要有一个tableIterator,指向当前第一个未遍历的tuple，还需要一个指向这个tableheap的指针。</p>
+<p>每一个执行器都包含两个默认的方法，就是初始化和Next</p>
+<p>初始化就是，我们根据plannode种的表id和执行器上下文exec_ctx种的catalog去找到tableheap，也就是先找到表，然后初始化这个tableIterator未table的begin();</p>
+<p>next首先判断当前是不是已经扫描完成表，即<code>iter_ == table_heap_-&gt;End()</code>，然后根据plan_-&gt;OutputSchema()-&gt;GetColumnCount()来构建这个返回元组tuple，通过这个计划节点先获取这个返回元组的schema，然后，逐个的获取tableIterator指向的tuple中的每一个对应的在schema的column的value，然后将这些获得的value逐个的放在vector中，然后构建输出的tuple</p>
+<p>但是在输出之前，我们需要先判断这个计划节点的predicate是否满足，如果满足就返回这个构建的tuple，如果不满足就直接下一个。</p>
+<h3 id="InsertExecutor"><a href="#InsertExecutor" class="headerlink" title="InsertExecutor"></a>InsertExecutor</h3><p>插入数据的来源可能有两种可能来源。第一种是来自child，每次调用InsertExecutor的Next方法时，就将从child获取的tuple插入到表中。另一个就是直接传入数据插入到表中，也就是RawValues，原生数据。</p>
+<p><strong>在插入操作时，我们要记得更新我们的索引index</strong></p>
+<p>来自child的tuple比较简单，直接插入就好了，别忘了在自己的init方法中init child，然后将从child获取的tuple插入到表中。<strong>然后要记得修改索引</strong>，直接调用之前封装好的插入索引方法就行，这里是调用index的InsertEntry方法</p>
+<p>对于rawvalues，取出要插入的tuple，然后使用table_heap的插入方法，插入到某个page中</p>
+<p>==基本流程：== 首先判断是不是RawInsert，如果是直接插入到page中，如果不是就继续往下找，找到最后一个插入到page中，是通过table_heap_-&gt;InsertTuple()方法插入的，他会逐个遍历这个表page，有空就插入，如果没有空了就新建一个page插入， 然后插入完成之后，要更新索引</p>
+<blockquote>
+<p><strong>有点要注意的时，就是我们插入数据的时候，肯定时先插入之后再给这个tuple上写锁，那么在这就会发生一个幻读的现象。</strong></p>
+<p>除非我们直接将这个table给上锁了，就不会出现幻读现象了。</p>
+</blockquote>
+<h3 id="UpdateExecutor和DeleteExecutor"><a href="#UpdateExecutor和DeleteExecutor" class="headerlink" title="UpdateExecutor和DeleteExecutor"></a>UpdateExecutor和DeleteExecutor</h3><p>更新就是将原来的tuple根据planNode指定的更新方式（一个是add，一个是直接set），这个更新方法已经提供了，只要每次调用next方法时，通过child获取下一个需要更新的tuple，调用GenerateUpdatedTuple生成更新后的tuple，然后调用tableHeap的updataTuple在表中更新tuple，再在所有的索引中删除原来的tuple，插入新的tuple，返回tuple的RID即可</p>
+<p>删除也是删除child提供的tuple的RID调用table的MarkDelete方法。<strong>这里MarkDelete的意思是使tuple invisable，并不真的删除它</strong>。只有在事务提交的时候才真的删除。这样如果事务还没提交就abort了，回滚时只需要将mark的标志撤销就好。</p>
+<h3 id="NestedLoopJoin"><a href="#NestedLoopJoin" class="headerlink" title="NestedLoopJoin"></a>NestedLoopJoin</h3><p>join我们都知道时连接操作，就是将两个表通过相同的字段进行连接，如何实现这个连接，有两种方法，一个时嵌套循环连接，一个时hashjoin连接</p>
+<p>原理：就是将两个孩子节点返回的tuple进行断言判断（也就是判断指定的columns位置上的value是不是相同的），如果相同，就将这两个tuple根据outputSchema组合输出新的tuple</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">while</span> (left_child-&gt;<span class="hljs-built_in">Next</span>(&amp;left_tuple))&#123;<br>    <span class="hljs-keyword">while</span> (right_child-&gt;<span class="hljs-built_in">Next</span>(&amp;right_tuple))&#123;<br>        <span class="hljs-keyword">if</span> (left_tuple matches right_tuple)&#123;<br>            *tuple = ...;   <span class="hljs-comment">// assemble left &amp; right together</span><br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>        &#125;<br>    &#125;<br>&#125;<br><span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br></code></pre></td></tr></table></figure>
+
+<p>因为我们这个执行器的next每次只是输出了一个符合要求的tuple，比如我们第一次遍历right child ，有一个符合条件的，然后返回，没有遍历的right child怎么办，因为我们下次开始获取left child，所以就会导致有的没有遍历到。还有就是，我们right只能遍历一次就无法遍历了，因为右边的迭代器到底了，其next无法返回数据了。</p>
+<p>针对上面的情况，我设计了临时存储左边一个tuple和所有的右边的表的tuple满足的组合tuple放到这个执行器的一个变量中std::queue<Tuple> tmp_results_{};临时存储，然后下一次进入时，直接先从这里面取，如果没有了，那么左边的child 的iter++，直到左边的所有的tuple被遍历完成。</Tuple></p>
+<h3 id="HashJoin"><a href="#HashJoin" class="headerlink" title="HashJoin"></a>HashJoin</h3><p>基本逻辑：</p>
+<p>先将左表的tuple给hash一下并插入到哈希表中，key就是join的字段，value就是tuple数组（因为会有多个tuple的join字段相同，我们把相同的都放进这个tuple数组中），然后不断的获取右表的tuple， 然后对指定的右表的tuple的列做hash，然后看看在左表形成的hash表中有没有对应的key，如果有，说明满足join条件，然后去构建新的tuple数组并返回。</p>
+<p>这个不需要建立临时的容器存储内容</p>
+<h3 id="AGGREGATION"><a href="#AGGREGATION" class="headerlink" title="AGGREGATION"></a><strong>AGGREGATION</strong></h3><p>之前我们都直到有一些聚合函数，比如sum，max，min，count等等，这个执行器就是来实现这些功能的。</p>
+<p>然后还会结合Group by 和having on，如下的例句就是执行聚合操作：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">select</span> deptno,<span class="hljs-built_in">sum</span>(sal)  total  <span class="hljs-keyword">from</span> emp <span class="hljs-keyword">where</span> sal<span class="hljs-operator">&gt;</span><span class="hljs-number">1000</span> <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span>  deptno <span class="hljs-keyword">having</span> <span class="hljs-built_in">sum</span>(sal) <span class="hljs-operator">&gt;</span><span class="hljs-number">9000</span> <br><span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> <span class="hljs-built_in">sum</span>(sal) <span class="hljs-keyword">asc</span>;<br></code></pre></td></tr></table></figure>
+
+<p>如何实现：采用hash表实现的。</p>
+<p>首先group by时肯定时要有一个列作为聚合对象，将此列的相同的值列为一组（先分组），那我们就可以将这个组的value设置为key，然后聚合结果设置为value，</p>
+<p>这个聚合执行器只有一个孩子算子，那我们在init方法中循环的获取tuple，然后将这个tuple的对应的那个列的value进行hash一下得到AggregateKey，然后将这个值和hash表中的AggregateKey对应的AggregateValue进行运算，得到新的聚合值，但是这种算法只能满足四个聚合功能，count，sum，min，max，对于平均值等没有实现。但是6.830实现了。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 遍历完整张表以后，哈希表也就建立了。现在哈希表中key的数量由整张表中group指定的列中unique value的数量确定。</span><br><span class="hljs-comment"> * 而哈希表的value则是每个unique value对应的count，sum值。</span><br><span class="hljs-comment"> * 之后每次next只要使用哈希表的迭代器根据having（如果有的话）找到下一个符合要求的key/value键值对，构造出新的tuple返回就行。</span><br><span class="hljs-comment"> */</span><br></code></pre></td></tr></table></figure>
+
+
+
+<h2 id="project4-concurrency-control"><a href="#project4-concurrency-control" class="headerlink" title="project4 concurrency control"></a>project4 concurrency control</h2><p>这个项目是实现一个lockmanager（S锁和X锁管理器），并使用它来支持query execution，实现事务的隔离性。事务（Transaction）是数据库中一个极其重要的概念。<br>本实验要实现三个task：</p>
+<ul>
+<li>lock manager：锁管理器，这里的锁是X锁（排他锁/写锁）和S锁（共享锁/读锁），利用2PL（两阶段锁）实现并发控制。</li>
+<li>DeadLock prevention：防止在加锁过程中出现死锁现象，采用的wound-wait算法来预防死锁现象</li>
+<li>concurrent query execution：修改之前的算子，SeqSacn、insert、delete等算子，加上合适的锁实现并发查询的效果</li>
+</ul>
+<h3 id="什么是事务"><a href="#什么是事务" class="headerlink" title="什么是事务"></a>什么是事务</h3><p>事务可以简单的理解为执行几个sql语句的动作</p>
+<h4 id="事务的隔离级别"><a href="#事务的隔离级别" class="headerlink" title="事务的隔离级别"></a>事务的隔离级别</h4><p><img src="/2023/04/13/CMU-15445/image-20230223193447618.png" srcset="/img/loading.gif" lazyload alt="image-20230223193447618"></p>
+<p>下面介绍一下什么是脏读、不可重复读、幻读</p>
+<blockquote>
+<p>脏读：就是事务t1先修改了数据x的值，然后事务t2读取了事务1修改后x的值，但是事务1有由于某些原因导致事务中止，而事务2进行了正常的提交，因此此时事务2读取了了一个根本不存在的值。</p>
+</blockquote>
+<blockquote>
+<p>不可重复读：事务1读取了x的值，然后事务2对x进行了修改并提交了，然后事务1又去读取了x的值，此时读取的数据两次不一样，这就是不可重复读，就是两次不同的时间去读一个数结果不一致。</p>
+</blockquote>
+<blockquote>
+<p>幻读：当事务1先读取符合搜索条件P的记录，然后T2写下了符合搜索田间P的记录，之后事务1再去读取符合搜索条件P的记录时，此时发现两次读取的记录不一样。</p>
+</blockquote>
+<p>在不同的隔离级别下，我们要满足上述的要求</p>
+<p>读未提交：不用保证任何</p>
+<p>读已提交：要保证不能发生脏读现象。</p>
+<p>可重读：保证不能发生脏读和不可重读现象</p>
+<p>以上都是通过上不同的锁来实现的</p>
+<h3 id="lock-manager"><a href="#lock-manager" class="headerlink" title="lock manager"></a>lock manager</h3><p>为了保证事务们的操作的正常顺序和间隔，DBMS使用一个lock manager来控制事务何时能够被允许访问data items。LM中维护了某个tuple对应的事务锁请求，以及为某个具体的事务对某个tuple进行上锁、解锁、升级锁函数。</p>
+<p><code>std::unordered_map&lt;RID, LockRequestQueue&gt; lock_table_;</code>// 记录了某个tuple的所有锁请求</p>
+<p>对于每一个RID 也就是每一个tuple都对应着一个<code>LockRequestQueue</code>即锁请求队列，这个锁请求队列中主要就是一个std::list<LockRequest> request_queue_,这个LockRequest表示一个这个锁来自哪个事务，锁类型，锁是否授予等</LockRequest></p>
+<p>这个lock manager 全局只有一个，当我们的Tableheap和Executor class 想要修改一个tuple时，需要使用它来获取相应的锁。根据不同的隔离级别，我们会在合适的地方进行上锁和解锁操作，以及更改事务的状态。如果上锁失败了，都应该产生一个ABORTED状态，并抛出异常（比如在Shrinking阶段时又尝试申请锁，又或者死锁了被aborted）。事务管理器txn manager应该之后捕获这个异常并将这个事务已经执行的操作进行rollback。</p>
+<h3 id="锁类型"><a href="#锁类型" class="headerlink" title="锁类型"></a>锁类型</h3><p>Shared lock ：共享锁，也就是读锁</p>
+<p>exclusive lock ： 排他锁，也就是写锁</p>
+<h3 id="2PL-两阶段锁"><a href="#2PL-两阶段锁" class="headerlink" title="2PL 两阶段锁"></a>2PL 两阶段锁</h3><p>什么是两阶段锁，他是一种悲观的解决并发问题，所谓的两阶段锁，是一种能够无需提前知道未来所有事务内容的情况下保证调度冲突可串行化的一种并发协议。</p>
+<p>两阶段封锁顾名思义分为两个阶段，分别是Growing阶段和Shrink阶段。在Growing阶段，事务从Lock Manager处获得执行事务所需要的所有数据对象的锁；当事务执行第一个解锁操作时，随后进入Shrink阶段，只能释放Growing阶段获得的锁，不能够重新获取新的锁。</p>
+<blockquote>
+<p>普通2PL产生的问题：<strong>级联回滚</strong></p>
+</blockquote>
+<p><strong>但是普通的2PL协议会产生<code>级联回滚</code>的问题：</strong>如下</p>
+<p><img src="/2023/04/13/CMU-15445/v2-8bbbdcc2984d9e3712e511dc9573c461_r.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><strong>我们可以看出，如果T1在释放A锁之后，我们的T2获取了A锁，然后读取了A的内容并提交了，但是呢此时T1失败了，这样就会产生了脏读现象，需要对事务进行回滚。</strong></p>
+<p><strong>为了解决这个问题，还有一种严格的2PL协议，就是在事务commit的时候才会去释放锁。</strong></p>
+<blockquote>
+<p>严格2PL（两阶段锁）</p>
+</blockquote>
+<p><strong>如果所有的事务都遵守二阶段锁定协议的话，在事务之前获取锁，事务结束阶段释放锁，那么所有并发事务执行结果必然正确，这是严格的2PL</strong></p>
+<p>而且完全遵守二阶段锁效率是非常低下的。所以这里提出了妥协，就是设置了不同的隔离等级，来避免脏读、不可重复读、幻读等。相当于介于严格和普通的2PL锁协议之间。（主要体现在三个方面 1. 读以提交的我们甚至都没有采用两阶段锁协议，因为读锁释放之后还可以获取 2. 我们将写锁的释放都延迟到了事务提交阶段  3. 在可重复读时 可以释放读锁，但是需要进入shinking阶段，写锁的释放推迟到事务提交阶段释放。）</p>
+<p>这里我们只需要完成<strong>未提交读（read uncommitted）</strong>，<strong>提交读（read committed）</strong>，<strong>可重复读（repeatable read）</strong></p>
+<p>具体的上锁计划如下：</p>
+<ol>
+<li>READ_UNCOMMITED只有在需要时上写锁。</li>
+<li>READ_COMMITTED要解决脏读的问题，解决方案就是读时上读锁，读完解读锁；写时上写锁，但等到commit时才解写锁；读时上读锁，读完解读锁。这样，永远不会读到未commit的数据，因为上面有写锁。（这样就保证了脏读的出现，但是不能保证可重读）（这里没有使用两阶段锁协议其实，就是普通的加锁和解锁，因为我们都没有）<ul>
+<li>具体就是读时上读锁，读完释放读锁（但是我们不会将事务状态改为shriking）写时上写锁，然后在事务提交的时候才释放写锁，然后将事务改为shrinking状态。</li>
+</ul>
+</li>
+<li>REPEATABLE_READ 其实就是我在执行事务的时候不想被别的事务打扰， <strong>二级封锁协议加上事务</strong>,A事务读取数据的时候就加上共享锁，如果释放共享锁了，就不能再获取锁了进入shinking阶段（保证自己下面不能再获取锁进行读了，以此避免不可重读），但是其他的事务可以读取，因为s锁是可以共存的，如果是X锁，要到事务提交后才能释放锁，且别的事务无法打扰。这就避免了脏读和不可重复读现象发生。<ul>
+<li>具体就是可以在读完之后释放锁，但是需要更改状态位shinking，将写锁的释放推迟到事务提交</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p><strong>所谓的最后释放锁，其实就是在事务提交的时候，不断的遍历这个事务所持有的锁，然后挨个释放，在insert、update等算子中我们不执行释放锁就行了</strong></p>
+</blockquote>
+<h3 id="lock-manager函数"><a href="#lock-manager函数" class="headerlink" title="lock manager函数"></a>lock manager函数</h3><h4 id="先介绍几个相关的类"><a href="#先介绍几个相关的类" class="headerlink" title="先介绍几个相关的类"></a>先介绍几个相关的类</h4><p>TransactionManager：包含事务开启、事务的提交、事务的中止的方法、以及根据事务id获取指定的事务</p>
+<p>Transaction： 包含了事务的一些属性，事务id，事务的隔离级别，这个事务所拥有哪些tuple的锁，事务的状态，等信息。</p>
+<p>LockManager： 包含了每个tuple对应的事务上锁请求，完成某个事务对某个tuple的上锁、解锁操作等</p>
+<p>LockRequest： 上锁请求，包含了事务id、上锁类型、是否上锁信息，这个是对应在lockmanager中的某个RID的，所以不需要指定rid了</p>
+<h4 id="WOUND-wait算法"><a href="#WOUND-wait算法" class="headerlink" title="WOUND-wait算法"></a>WOUND-wait算法</h4><p>这是一种抢占式算法，在本项目中就是假如说年轻的事务正在持有某一个tuple的锁，但是此时老事务也想要获取这个锁，那么我们就要把这个锁给老事务，而把新事务给aborted掉。这种操作就可以避免死锁产生。如果此时年老的事务正在持有某个tuple的锁，但是年轻的事务也要想获取锁，于是就等待老事务将锁释放。</p>
+<h4 id="LockShared函数"><a href="#LockShared函数" class="headerlink" title="LockShared函数"></a>LockShared函数</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Acquire a lock on RID in shared mode. See [LOCK_NOTE] in header file.</span><br><span class="hljs-comment"> * @param txn the transaction requesting the shared lock</span><br><span class="hljs-comment"> * @param rid the RID to be locked in shared mode</span><br><span class="hljs-comment"> * @return true if the lock is granted, false otherwise</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">LockShared</span><span class="hljs-params">(Transaction *txn, <span class="hljs-type">const</span> RID &amp;rid)</span></span>;<br></code></pre></td></tr></table></figure>
+
+<p>给一个事务去申请某个tuple的shared锁。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">LockManager::LockShared</span><span class="hljs-params">(Transaction *txn, <span class="hljs-type">const</span> RID &amp;rid)</span> </span>&#123;<br>  <span class="hljs-comment">// 首先判断这个事务是不是已经aborted了</span><br>  <span class="hljs-keyword">if</span>(txn-&gt;<span class="hljs-built_in">GetState</span>() == TransactionState::ABORTED)&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-comment">// 查看事务的隔离级别,READ_UNCOMMITTED只有在写的时候才能加锁</span><br>  <span class="hljs-keyword">if</span>(txn-&gt;<span class="hljs-built_in">GetIsolationLevel</span>() == IsolationLevel::READ_UNCOMMITTED)&#123;<br>    txn-&gt;<span class="hljs-built_in">SetState</span>(TransactionState::ABORTED);<br>    <span class="hljs-keyword">throw</span> <span class="hljs-built_in">TransactionAbortException</span>(txn-&gt;<span class="hljs-built_in">GetTransactionId</span>(), AbortReason::LOCKSHARED_ON_READ_UNCOMMITTED);<br>  &#125;<br>  <span class="hljs-comment">// 在GROWING阶段才可以加锁</span><br>  <span class="hljs-keyword">if</span>(txn-&gt;<span class="hljs-built_in">GetState</span>() == TransactionState::SHRINKING)&#123;<br>    txn-&gt;<span class="hljs-built_in">SetState</span>(TransactionState::ABORTED);<br>    <span class="hljs-keyword">throw</span> <span class="hljs-built_in">TransactionAbortException</span>(txn-&gt;<span class="hljs-built_in">GetTransactionId</span>(), AbortReason::LOCK_ON_SHRINKING);<br>  &#125;<br>  <span class="hljs-comment">// 是否这个事务已经获取了这个tuple的shared锁</span><br>  <span class="hljs-keyword">if</span>(txn-&gt;<span class="hljs-built_in">IsSharedLocked</span>(rid))&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br><br>  <span class="hljs-comment">//接下来继续上锁，并采取wound-wait算法进行上锁，老的抢占年轻的锁</span><br>  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">guard</span><span class="hljs-params">(latch_)</span></span>;<span class="hljs-comment">// 下面是对共享资源lock_table_更改，所以要上锁</span><br>  LockRequestQueue * lock_request_queue = &amp;lock_table_[rid];<br>  <span class="hljs-function">LockRequest <span class="hljs-title">lockrequest</span><span class="hljs-params">(txn-&gt;GetTransactionId(),LockMode::SHARED)</span></span>;<br>  lock_request_queue-&gt;request_queue_.<span class="hljs-built_in">emplace_back</span>(lockrequest);<br>  txn-&gt;<span class="hljs-built_in">GetSharedLockSet</span>()-&gt;<span class="hljs-built_in">emplace</span>(rid);<br><br>  <span class="hljs-comment">// 上锁要讲究顺序，采取的算法是WOUND-WAIT算法，老的抢占年轻的，年轻的等待</span><br>  <span class="hljs-keyword">while</span>(<span class="hljs-built_in">NeedWait</span>(txn,lock_request_queue))&#123;<br>    <span class="hljs-comment">// 如果需要等待，我们这里使用线程等待，使用wait</span><br>    lock_request_queue-&gt;cv_.<span class="hljs-built_in">wait</span>(guard);<br>    <span class="hljs-comment">// 这个等待会被唤醒，同时我们要判断我们这个事务是不是在等待过程中被别的事务给中止了</span><br>    <span class="hljs-keyword">if</span>(txn-&gt;<span class="hljs-built_in">GetState</span>() == TransactionState::ABORTED)&#123;<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>    &#125;<br>    <span class="hljs-comment">// 如果我们在等待过程中没有被中止，那我们再判断一下是不是还需要等待</span><br>  &#125;<br><br>  <span class="hljs-comment">// 如果不需要等待，说明我们可以授予锁了</span><br><br>  <span class="hljs-keyword">for</span>(<span class="hljs-keyword">auto</span> e : lock_request_queue-&gt;request_queue_)&#123;<br>    <span class="hljs-keyword">if</span>(e.txn_id_ == txn-&gt;<span class="hljs-built_in">GetTransactionId</span>())&#123;<br>      e.granted_ = <span class="hljs-literal">true</span>;<br>    &#125;<br>  &#125;<br>  txn-&gt;<span class="hljs-built_in">SetState</span>(TransactionState::GROWING);<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="NeedWait函数"><a href="#NeedWait函数" class="headerlink" title="NeedWait函数"></a>NeedWait函数</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">LockManager::NeedWait</span><span class="hljs-params">(Transaction *txn, LockRequestQueue *lock_queue)</span> </span>&#123;<br>  <span class="hljs-keyword">auto</span> self = lock_queue-&gt;request_queue_.<span class="hljs-built_in">back</span>();<br><br>  <span class="hljs-keyword">auto</span> first_iter = lock_queue-&gt;request_queue_.<span class="hljs-built_in">begin</span>();<br>  <span class="hljs-keyword">if</span> (self.lock_mode_ == LockMode::SHARED) &#123;<br>    <span class="hljs-keyword">if</span> (first_iter-&gt;txn_id_ == txn-&gt;<span class="hljs-built_in">GetTransactionId</span>() || first_iter-&gt;lock_mode_ == LockMode::SHARED) &#123;<span class="hljs-comment">// 从这里我们可以知道，唤醒之后，是执行事务请求队列中的第一个事务</span><br>      <span class="hljs-comment">// 1. 看看这个锁请求队列中是不是只有一个事务，如果只有一个事务，那么就把这个锁给这个请求者（不需要等待）</span><br>      <span class="hljs-comment">// 第一个一定是获取锁请求的，所以如果此时获取锁是SHARED那么是可以共存的s锁，不需要等待</span><br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>    &#125;<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-keyword">if</span> (first_iter-&gt;txn_id_ == txn-&gt;<span class="hljs-built_in">GetTransactionId</span>()) &#123;<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>    &#125;<br>  &#125;<br>  <br>  <span class="hljs-comment">// need wait, try to prevent it.</span><br>  <span class="hljs-type">bool</span> need_wait = <span class="hljs-literal">false</span>;<br>  <span class="hljs-type">bool</span> has_aborted = <span class="hljs-literal">false</span>;<br>  <span class="hljs-comment">// 采取的是年轻的等待老的，老的直接抢占新的，事务的id越小越老</span><br>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> iter = first_iter; iter-&gt;txn_id_ != txn-&gt;<span class="hljs-built_in">GetTransactionId</span>(); iter++) &#123;<br>    <span class="hljs-keyword">if</span> (iter-&gt;txn_id_ &gt; txn-&gt;<span class="hljs-built_in">GetTransactionId</span>()) &#123; <span class="hljs-comment">// 这个是比自己年轻的</span><br>      <span class="hljs-type">bool</span> situation1 = self.lock_mode_ == LockMode::SHARED &amp;&amp; iter-&gt;lock_mode_ == LockMode::EXCLUSIVE; <span class="hljs-comment">// 情景一：自己申请的锁是S并且比自己年轻的锁是X</span><br>      <span class="hljs-type">bool</span> situation2 = self.lock_mode_ == LockMode::EXCLUSIVE;<span class="hljs-comment">// 情景二：自己申请的锁是X锁</span><br>      <span class="hljs-keyword">if</span> (situation1 || situation2) &#123;<br>        <span class="hljs-comment">// abort younger ，事务编号越大越年轻，以上两种情况，都不允许年轻的事务还持有锁，直接给他abort</span><br>        Transaction *younger_txn = TransactionManager::<span class="hljs-built_in">GetTransaction</span>(iter-&gt;txn_id_);<br>        <span class="hljs-keyword">if</span> (younger_txn-&gt;<span class="hljs-built_in">GetState</span>() != TransactionState::ABORTED) &#123;<br>          <span class="hljs-built_in">LOG_DEBUG</span>(<span class="hljs-string">&quot;%d: Abort %d&quot;</span>, txn-&gt;<span class="hljs-built_in">GetTransactionId</span>(), iter-&gt;txn_id_);<br>          younger_txn-&gt;<span class="hljs-built_in">SetState</span>(TransactionState::ABORTED);<br>          has_aborted = <span class="hljs-literal">true</span>;<br>        &#125;<br>      &#125;<br>      <span class="hljs-keyword">continue</span>;<br>    &#125;<br>    <span class="hljs-comment">// 下面都是比自己老的事务在持有锁，所以我们要等待</span><br>    <span class="hljs-keyword">if</span> (self.lock_mode_ == LockMode::EXCLUSIVE) &#123;<br>      need_wait = <span class="hljs-literal">true</span>; <span class="hljs-comment">// </span><br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (iter-&gt;lock_mode_ == LockMode::EXCLUSIVE) &#123;<br>      need_wait = <span class="hljs-literal">true</span>; <span class="hljs-comment">// 因为老事务的锁是EXCLUSIVE，那么我需要等待，无论我是SHARED还是EXCLUSIVE</span><br>    &#125;<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> (has_aborted) &#123;<br>    lock_queue-&gt;cv_.<span class="hljs-built_in">notify_all</span>(); <span class="hljs-comment">// 这个时候我们应该所有等待的事务都唤醒（也就是线程），唤醒后判断是否被aborted了，如果别中止了，那个线程就直接返回false了，也就是上锁失败了</span><br>  &#125;<br><br>  <span class="hljs-keyword">return</span> need_wait;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>关于X锁和S锁共存问题</p>
+</blockquote>
+<p><img src="/2023/04/13/CMU-15445/image-20230223224027708.png" srcset="/img/loading.gif" lazyload alt="image-20230223224027708"></p>
+<p>判断是否需要等待获取锁，基本思想就是，老的事务抢占年轻的，年轻的等待老的，S锁可以同时获取。</p>
+<p>这个锁请求在lockmanager的hash表中，一个tuple对应着一个锁请求队列，这个队列中都是要上锁的请求。按照之前的申请的顺序排列的。</p>
+<p>然后我们构建一个锁请求后，然后根据WOUND-wait算法来判断是不是需要等待。</p>
+<ol>
+<li>如果自己申请的是shared锁，并且此时持有锁的事务持有的是这个tuple的s锁，那么不用等待，直接返回</li>
+<li>如果此时自己申请的是S锁，但是前面比自己年轻的事务持有的是X锁，那么就把这个事务给abort掉</li>
+<li>如果自己申请的是X锁，那么比自己年轻的全部都abort掉</li>
+<li>如果abort掉比自己年轻的事务后，还有老的事务，就等待着，因为一个线程绑定一个事务，所以用线程的wait方法进行等待</li>
+<li>我们要注意了，如果我们把一些年轻的事务abort，我们需要唤醒所有的等待的事务，然后把这些abort的事务获取锁结果返回false，不然他们还是一直等待。</li>
+</ol>
+<h4 id="LockExclusive函数"><a href="#LockExclusive函数" class="headerlink" title="LockExclusive函数"></a>LockExclusive函数</h4><p>基本思路和获取s锁一样</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">LockManager::LockExclusive</span><span class="hljs-params">(Transaction *txn, <span class="hljs-type">const</span> RID &amp;rid)</span> </span>&#123;<br><br>  <span class="hljs-comment">// 首先判断这个事务是不是已经aborted了</span><br>  <span class="hljs-keyword">if</span>(txn-&gt;<span class="hljs-built_in">GetState</span>() == TransactionState::ABORTED)&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-comment">// 在GROWING阶段才可以加锁</span><br>  <span class="hljs-keyword">if</span>(txn-&gt;<span class="hljs-built_in">GetState</span>() != TransactionState::GROWING)&#123;<br>    txn-&gt;<span class="hljs-built_in">SetState</span>(TransactionState::ABORTED);<br>    <span class="hljs-keyword">throw</span> <span class="hljs-built_in">TransactionAbortException</span>(txn-&gt;<span class="hljs-built_in">GetTransactionId</span>(), AbortReason::LOCK_ON_SHRINKING);<br>  &#125;<br>  <span class="hljs-comment">// 是否这个事务已经获取了这个tuple的exclusive锁</span><br>  <span class="hljs-keyword">if</span>(txn-&gt;<span class="hljs-built_in">IsExclusiveLocked</span>(rid))&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br>  <span class="hljs-comment">//接下来继续上锁，并采取wound-wait算法进行上锁，老的抢占年轻的锁</span><br>  <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">guard</span><span class="hljs-params">(latch_)</span></span>;<span class="hljs-comment">// 下面是对共享资源lock_table_更改，所以要上锁</span><br>  LockRequestQueue * lock_request_queue = &amp;lock_table_[rid];<br>  <span class="hljs-function">LockRequest <span class="hljs-title">lockrequest</span><span class="hljs-params">(txn-&gt;GetTransactionId(),LockMode::EXCLUSIVE)</span></span>;<br>  lock_request_queue-&gt;request_queue_.<span class="hljs-built_in">emplace_back</span>(lockrequest);<br>  txn-&gt;<span class="hljs-built_in">GetExclusiveLockSet</span>()-&gt;<span class="hljs-built_in">emplace</span>(rid);<br>  <span class="hljs-comment">// 上锁要讲究顺序，采取的算法是WOUND-WAIT算法，老的抢占年轻的，年轻的等待</span><br>  <span class="hljs-keyword">while</span>(<span class="hljs-built_in">NeedWait</span>(txn,lock_request_queue))&#123;<br>    <span class="hljs-comment">// 如果需要等待，我们这里使用线程等待，使用wait</span><br>    lock_request_queue-&gt;cv_.<span class="hljs-built_in">wait</span>(guard);<br>    <span class="hljs-comment">// 这个等待会被唤醒，同时我们要判断我们这个事务是不是在等待过程中被别的事务给中止了</span><br>    <span class="hljs-keyword">if</span>(txn-&gt;<span class="hljs-built_in">GetState</span>() == TransactionState::ABORTED)&#123;<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>    &#125;<br>    <span class="hljs-comment">// 如果我们在等待过程中没有被中止，那我们再判断一下是不是还需要等待</span><br>  &#125;<br>  <span class="hljs-comment">// 如果不需要等待，说明我们可以授予锁了</span><br><br>  <span class="hljs-keyword">for</span>(<span class="hljs-keyword">auto</span> e : lock_request_queue-&gt;request_queue_)&#123;<br>    <span class="hljs-keyword">if</span>(e.txn_id_ == txn-&gt;<span class="hljs-built_in">GetTransactionId</span>())&#123;<br>      e.granted_ = <span class="hljs-literal">true</span>;<br>    &#125;<br>  &#125;<br>  txn-&gt;<span class="hljs-built_in">SetState</span>(TransactionState::GROWING);<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="LockUpdate函数"><a href="#LockUpdate函数" class="headerlink" title="LockUpdate函数"></a>LockUpdate函数</h4><p>就是将已经获取到S锁的事务（也就是此时这个tuple的正在被这个事务锁着），然后又想获得X锁，所以此时我们应该将SharedLock的请求给删除掉，然后在第一个没有授予锁的请求之前插入EXCLUSIVE锁，（因为此时这个事务在获取锁呢，说明现在排队等的都是比自己年轻的事务），所以我们将创建的新的锁请求放到队列的最前面，这样就会使得它去获得锁了。这个过程中大锁一直都持有，所以外界是看不到中间过程的。</p>
+<h4 id="Unlock函数"><a href="#Unlock函数" class="headerlink" title="Unlock函数"></a>Unlock函数</h4><p>解锁操作，就是将一个事务对某个tuple上的锁进行解锁，解锁完成之后，我们需要唤醒所有正在等待这个tuple锁的请求队列，因为这种情况下可能会有多个事务都会获取锁。然后记得再将这个事务种的lockset中对应的tuple给删除掉。</p>
+<blockquote>
+<p>这里解锁的思路虽然是上面，但是我们还需要根据2pl协议和事务隔离级别，在解锁后更改事务的状态。</p>
+</blockquote>
+<p>这一点我们可以看我们之前总结那三个隔离级别下的事务状态变化</p>
+<p><img src="/2023/04/13/CMU-15445/image-20230224161625654.png" srcset="/img/loading.gif" lazyload alt="image-20230224161625654"></p>
+<p>结论：所以，只有在REPEATABLE_READ隔离级别下，我们才需要在第一次SHARED锁解锁后将事务的状态设置成SHIRNKING状态，另外两个隔离级别是不需要这个两阶段锁协议的，并且READ_COMMITTED和REPEATABLE_READ的X锁释放都是在事务提交的时候才释放锁（可以看下面的代码，X锁的释放由事务提交统一释放），那个时候事务已经结束了，所以就不需要再判断解锁X锁设置事务状态为SHIRNKING，对于X锁，直接解锁就行了。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">TransactionManager::Commit</span><span class="hljs-params">(Transaction *txn)</span> </span>&#123;<br>  <span class="hljs-built_in">LOG_DEBUG</span>(<span class="hljs-string">&quot;%d: Start to commit&quot;</span>, txn-&gt;<span class="hljs-built_in">GetTransactionId</span>());<br>  txn-&gt;<span class="hljs-built_in">SetState</span>(TransactionState::COMMITTED);<br><br>  <span class="hljs-comment">// Perform all deletes before we commit.</span><br>  <span class="hljs-keyword">auto</span> write_set = txn-&gt;<span class="hljs-built_in">GetWriteSet</span>();<br>  <span class="hljs-keyword">while</span> (!write_set-&gt;<span class="hljs-built_in">empty</span>()) &#123;<br>    <span class="hljs-keyword">auto</span> &amp;item = write_set-&gt;<span class="hljs-built_in">back</span>();<br>    <span class="hljs-keyword">auto</span> table = item.table_;<br>    <span class="hljs-keyword">if</span> (item.wtype_ == WType::DELETE) &#123;<br>      <span class="hljs-comment">// Note that this also releases the lock when holding the page latch.</span><br>      table-&gt;<span class="hljs-built_in">ApplyDelete</span>(item.rid_, txn);<br>    &#125;<br>    write_set-&gt;<span class="hljs-built_in">pop_back</span>();<br>  &#125;<br>  write_set-&gt;<span class="hljs-built_in">clear</span>();<br><br>  <span class="hljs-comment">// Release all the locks.</span><br>  <span class="hljs-built_in">ReleaseLocks</span>(txn);<br>  <span class="hljs-comment">// Release the global transaction latch.</span><br>  global_txn_latch_.<span class="hljs-built_in">RUnlock</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="concurrent-query-execution"><a href="#concurrent-query-execution" class="headerlink" title="concurrent query execution"></a>concurrent query execution</h3><p>所谓的并发执行，就是在之前的算子中，SeqScan、Insert、delete等。在这些算子中，我们需要通过合适的加锁和解锁操作来实现不同的隔离级别。如何加锁和解锁如下：</p>
+<p><img src="/2023/04/13/CMU-15445/image-20230224163001377.png" srcset="/img/loading.gif" lazyload alt="image-20230224163001377"></p>
+<h2 id="MVCC-多版本并发控制"><a href="#MVCC-多版本并发控制" class="headerlink" title="MVCC 多版本并发控制"></a>MVCC 多版本并发控制</h2><p>参考书籍：《MySQL是怎样运行的》</p>
+<p>参考博客：<a target="_blank" rel="noopener" href="https://www.xiaolincoding.com/mysql/transaction/mvcc.html#read-view-%E5%9C%A8-mvcc-%E9%87%8C%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84">https://www.xiaolincoding.com/mysql/transaction/mvcc.html#read-view-%E5%9C%A8-mvcc-%E9%87%8C%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84</a></p>
+<p>参考博客：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/zhiyiYo/p/16972668.html">https://www.cnblogs.com/zhiyiYo/p/16972668.html</a></p>
+<blockquote>
+<p><strong>MVCC实现了读已提交和可重读隔离级别，他是通过生成一个<code>readview</code>和<code>undo日志</code>实现版本链的追踪。</strong></p>
+<ul>
+<li>通过在不同的事情生成readview来实现不同的隔离级别</li>
+<li><strong><code>READ COMMITTED</code>： 在每次执行select时都会产生一个新的read view，这样就能保证每次查询的数据都是可提交的</strong></li>
+<li><strong><code>REPEATABLE READ</code>： 这个是在事务第一次执行select语句的时候才会生成READ VIEW,之后就不会再继续生成了。</strong></li>
+</ul>
+</blockquote>
+<blockquote>
+<p>MVCC是一种乐观策略，他不会阻塞和等待，而2PL是一种悲观策略，他会导致事务的阻塞</p>
+</blockquote>
+<h3 id="readview"><a href="#readview" class="headerlink" title="readview"></a>readview</h3><p>所谓的readview就是，它其实就是记录某一时刻事务的状态，主要有4个字段进行记录。</p>
+<ul>
+<li><code>m_low_limit_id</code>：<code>DB_TRX_ID</code> 大于等于 <code>m_low_limit_id</code> 的记录对于当前查询不可见</li>
+<li><code>m_up_limit_id</code>：<code>DB_TRX_ID</code> 小于 <code>m_up_limit_id</code> 的记录对于当前查询可见</li>
+<li><code>m_creator_trx_id</code>：创建了 <code>ReadView</code> 的事务，也就是当前执行了 <code>SELECT</code> 语句的事务</li>
+<li><code>m_ids</code>：创建 <code>ReadView</code> 时仍处于活跃状态的事务列表</li>
+</ul>
+<p><code>ReadView::changes_visible</code> 用来鉴定一个记录对于当前查询是否可见，分为以下几种情况：</p>
+<ul>
+<li>如果 <code>id</code> 小于 <code>m_up_limit_id</code>，说明记录在快照创建之前就已提交，可见</li>
+<li>如果 <code>id</code> 等于 <code>m_creator_trx_id</code>，说明这条记录被当前事务所修改，可见</li>
+<li>如果 <code>id</code> 大于等于 <code>m_low_limit_id</code>，说明这条记录是在快照创建之后被修改的，不可见</li>
+<li>如果 <code>id</code> 在 [<code>m_up_limit_id</code>, <code>m_low_limit_id</code>) 之间，需要判断 <code>id</code> 在不在活跃事务列表中，如果在说明这条记录还没被提交则不可见，不在的话就是已被提交的记录则可见</li>
+</ul>
+<blockquote>
+<p>基本流程就是：</p>
+</blockquote>
+<p>假如我们找到了一个tuple，然后看看这个tuple被谁更改了，</p>
+<ul>
+<li>如果此时这个tuple的事务id，小于最小的说明可见，可以直接读</li>
+<li>如果大于最大的，不可见，我们需要根据这个rollpoint往前找，找到不活跃的事务，读其结果返回</li>
+<li>如果在活跃事务id区间，不可见，我们需根据这个rollpoint往前找，找到不活跃的事务，读其结果返回</li>
+<li>如果等于自己的事务id，可见</li>
+</ul>
+<h2 id="B-树索引"><a href="#B-树索引" class="headerlink" title="B+树索引"></a>B+树索引</h2><h3 id="聚簇索引"><a href="#聚簇索引" class="headerlink" title="聚簇索引"></a>聚簇索引</h3><blockquote>
+<p>这个索引是按照主键建立的B+树，所有的记录都是按照主键的大小进行排列，然后依次存放在不同的页中，页和页之间建立了一个双向链表。</p>
+<ul>
+<li>在叶子节点中，包含了这个记录的完整信息</li>
+<li>对于页目录项的页和用户记录的页都是按照主键的大小进行形成一个双向链表</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>InnoDB会默认的给我们生成一个聚簇索引，如果有主键，就按照主键生成，如果没有主键，就按照第一个不为NULL的列生成，如果都没有，自动生成一个id作为主键生成。</p>
+</blockquote>
+<p><img src="/2023/04/13/CMU-15445/7c635d682bd3cdc421bb9eea33a5a413.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<h3 id="二级索引"><a href="#二级索引" class="headerlink" title="二级索引"></a>二级索引</h3><blockquote>
+<p>这个索引是按照某一个非逐渐列建立的B+树</p>
+<ul>
+<li>在这个叶子节点中，只保存了<code>建立B+树用到的列</code>的和<code>主键</code>这两个记录,我们先找到这个列对应的主键信息，然后再去主键形成的B+树找到完整的记录</li>
+<li>对于页目录项的页和用户记录的页都是按照非主键列的大小进行形成了一个双向链表</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>二级索引的意义就是对于查找通过非主键的时候能够很快找到目标记录；</p>
+<p>基本流程：</p>
+<ul>
+<li>先在自己这个列形成的B+树中找到对应的主键（可能有多个相同的这个列的记录，对应多个主键）</li>
+<li>然后再拿到这个主键信息，到根据主键构建的B+树中找到目标记录；（称为回表）</li>
+<li>然后继续从刚才在非主键B+树找到的非主键记录继续向后遍历是否还有满足的记录；如果有，继续重复2动作，没有就结束</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>【补充】</p>
+</blockquote>
+<p>其实在二级索引时，对于页目录项节点，的记录其实包含了三个属性</p>
+<ul>
+<li>索引列的值</li>
+<li>主键值</li>
+<li>页号</li>
+</ul>
+<p>这是为了能够在大量索引值相同的情况下，快速找到对应的记录，通过这三个判断就能够保证在叶子节点存储时的顺序和正确查找。</p>
+<p><img src="/2023/04/13/CMU-15445/3104c8c3adf36e8931862fe8a0520f5d.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<h3 id="联合索引"><a href="#联合索引" class="headerlink" title="联合索引"></a>联合索引</h3><blockquote>
+<p>联合索引就是使用多个列的大小作为排序规则，同时使用多个列建立B+树</p>
+<ul>
+<li>先按照第一个列进行排序，然后再按照第二个列进行排序，</li>
+<li>在进行二分查找的时候必须要满足同时大于和同时小于才能确定这个目标页</li>
+<li>其他的和二级索引没啥区别，叶子节点也是只记录了形成索引的列和主键。</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>查找思路和步骤和二级索引相似。</p>
+</blockquote>
+<h3 id="B-树形成过程"><a href="#B-树形成过程" class="headerlink" title="B+树形成过程"></a>B+树形成过程</h3><blockquote>
+<p><strong>根页面万年不动窝</strong></p>
+</blockquote>
+<p><strong>对于聚簇索引，这个InnoDB会默认给我们建立一个，我们只用建立其他的自己想要的就行。</strong></p>
+<ul>
+<li>当我们想要使用某个列创建一个索引时，首先会分配一个空的根页面节点</li>
+<li>最开始，然后我们插入数据时，因为此时只有一个根页面节点，我们会直接将记录插入到这个页面</li>
+<li>如果页面满了后继续插入，就会去申请两个页面，然后根据列的大小排序分别插入到这两个页面中，然后将这两个页面的信息插入到根页面节点中。</li>
+</ul>
+<p>【总结】：建立索引时，B+树根节点页面始终不变，我们查找数据时，就能够直接获取这个页面id然后进行操作了。</p>
+<h2 id="undo-log-–-保证原子性"><a href="#undo-log-–-保证原子性" class="headerlink" title="undo log – 保证原子性"></a>undo log – 保证原子性</h2><p>这个日志用来保证事务执行的原子性，undo log会记录下来一个事务在执行过程中的所有增、删、改操作的记录。</p>
+<ul>
+<li>对于增，他会在undo log中记录下来这个新增的记录的主键值，然后后续回滚的时候，直接通过这个主键值删除对应的记录就行</li>
+<li>对于删除，他会记录下来这个记录的所有信息，在回滚的时候插入到表中就行</li>
+<li>对于更ixn，他会记录下来被更新的列的旧值，然后回滚时用这些去更新就行</li>
+</ul>
+<blockquote>
+<p>每一个跟新操作产生的undo log格式都会包含一个roll_pointer指针和一个trx_id事务id：</p>
+<ul>
+<li>通过 trx_id 可以知道该记录是被哪个事务修改的；</li>
+<li>通过 roll_pointer 指针可以将这些 undo log 串成一个链表，这个链表就被称为版本链；</li>
+</ul>
+</blockquote>
+<p><img src="/2023/04/13/CMU-15445/%E7%89%88%E6%9C%AC%E9%93%BE.png" srcset="/img/loading.gif" lazyload alt="版本链"></p>
+<blockquote>
+<p>其中MVCC多版本并发控制也是基于undo log实现的。</p>
+</blockquote>
+<h2 id="redo-log-–-保证持久性"><a href="#redo-log-–-保证持久性" class="headerlink" title="redo log – 保证持久性"></a>redo log – 保证持久性</h2><p>我们直到Bufferpool提升了读写效率，但是Bufferpool并不是每更新一个数据的时候就往磁盘写，而是由后台线程在适当的时候将其刷入到磁盘。</p>
+<p>但是有时候会出现数据库突然断电的时候，这个bufferpool的数据还是没有来得及刷入到磁盘中，导致更改的数据丢失了，这肯定是不允许的，因此我们友引入了一个redo log机制</p>
+<p>当我们对bufferpool的数据进行更改的时候，数据库会首先更新bufferpool，然后标记为ditry，然后我们会将这个页的修改以redo log的形式记录下来，这个时候更新就算完成了。这个技术就叫做WAL（write-ahead logging）–》mysql的写操作不是立刻写入到磁盘，而是更新bufferpool然后写入redo log中，然后在合适的机会将bufferpool的内容写入到磁盘中</p>
+<blockquote>
+<p>redo log是物理日志，他主要记录了某个数据页做了什么修改，比如<strong>对 XXX 表空间中的 YYY 数据页 ZZZ 偏移量的地方做了AAA 更新</strong>，每当执行一个事务就会产生这样的一条或者多条物理日志。</p>
+<ul>
+<li><p>只要在事务提交的时候，将这个redo log写入到磁盘就行，不需要直接就把buffer中的数据写入磁盘（redo log是磁盘顺序写，而bufferpool是随机写）</p>
+</li>
+<li><p>当系统发生崩溃的时候，虽然buffer中的脏页还没有实现持久化，但是redo log已经实现了持久化，接着mysql重启时，就会根据redolog中的内容将所有数据恢复到最新状态。</p>
+</li>
+</ul>
+</blockquote>
+<p><img src="/2023/04/13/CMU-15445/wal.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<blockquote>
+<p>被修改 Undo 页面，需要记录对应 redo log 吗？</p>
+</blockquote>
+<p>如果bufferpool中的undo log被修改了，也是会记录在redo log中的</p>
+<p>这两种日志是属于 InnoDB 存储引擎的日志，它们的区别在于：</p>
+<ul>
+<li>redo log 记录了此次事务「<strong>完成后</strong>」的数据状态，记录的是更新<strong>之后</strong>的值；</li>
+<li>undo log 记录了此次事务「<strong>开始前</strong>」的数据状态，记录的是更新<strong>之前</strong>的值；</li>
+</ul>
+<p>事务提交之前发生了崩溃，重启后会通过 undo log 回滚事务，事务提交之后发生了崩溃，重启后会通过 redo log 恢复事务，如下图</p>
+<p><img src="/2023/04/13/CMU-15445/%E4%BA%8B%E5%8A%A1%E6%81%A2%E5%A4%8D.png" srcset="/img/loading.gif" lazyload alt="事务恢复"></p>
+<h2 id="MySQL优化"><a href="#MySQL优化" class="headerlink" title="MySQL优化"></a>MySQL优化</h2><h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><blockquote>
+<p>火山模型有什么优缺点？</p>
+</blockquote>
+<p>火山模型是一种流式迭代模型，比较常见的执行模型，将执行树的每个节点都设为一个执行器，然后自顶向下的调用NEXT接口，实现数据自底向上的数据流动。</p>
+<p>他的优点是它可以单独的实现每个操作符，</p>
+<p>但是他每次查询调用太多的next接口，并且是一个个数据的获取，cpu利用率低。</p>
+<blockquote>
+<p>为什么使用B+树而不是B树或者红黑树</p>
+</blockquote>
+<p>B树是每个节点都存放着索引和数据，数据遍布整个树结构，搜索可能在非叶子节点结束，但是也可能在中间就结束了。</p>
+<p>而B+树是仅在叶子节点保存数据，其余节点只存放索引值，并且叶子节点中有指向下一个叶子节点的指针，叶子节点类似于链表。就是因为这个叶子节点保存了完整的数据以及有指针作为连接，B+树提高了了区间范围的访问性，提高了范围查询能力，而B树的范围查询能力较差。</p>
+<p>B树只适合做随机检索，而B+树同时支持随机检索和顺序检索。</p>
+<p>B+树空间利用率高，因为B+树的非叶子节点只保存索引，这些索引都是单独占一个页的，不像B树索引和数据都存放在一起同时在一个页中，这样B+树就能够一下子从磁盘中读到较多的索引，这样就可以更快的定位，减少了IO次数。</p>
+<p>B树在元素遍历的时候效率较差，因为B+树的叶子节点相互连接的。</p>
+<blockquote>
+<p>索引失效的场景</p>
+</blockquote>
+<ul>
+<li>模糊查询的时候以%开头</li>
+<li>where中索引列有运算或使用了函数</li>
+<li>进行了数据转换</li>
+<li>复合索引没有用到左列字段</li>
+<li>唯一性太差的字段可能也不会走索引</li>
+</ul>
+<p>什么场景下最好不使用索引：</p>
+<ul>
+<li>唯一性差，就是一个字段的取值就只有几种的时候，最好不用</li>
+<li>频繁更新的字段不要使用，因为频繁变化导致索引变化</li>
+<li>where中的大于号和小于号最好不要用</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/CMU15445/">#CMU15445</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>CMU-15445 数据库</div>
+      <div>http://example.com/2023/04/13/CMU-15445/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>bollcode</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年4月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/04/21/%E4%B8%AD%E6%96%AD/" title="linux中断">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">linux中断</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/04/13/C++%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="C++基础知识">
+                        <span class="hidden-mobile">C++基础知识</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

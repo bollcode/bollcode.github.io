@@ -1,0 +1,794 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/basketball.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="bollcode">
+  <meta name="keywords" content="">
+  
+    <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://example.com/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="bollcode">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 100vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>bollcode</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Welcome to my blog"></span>
+          
+        </div>
+
+        
+      </div>
+
+      
+        <div class="scroll-down-bar">
+          <i class="iconfont icon-arrowdown"></i>
+        </div>
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div id="board"
+          style="margin-top: 0">
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2023/06/13/%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0/" target="_self">
+          <img src="/img/linux.svg" srcset="/img/loading.gif" lazyload alt="linux内核锁实现">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2023/06/13/%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0/" target="_self">
+          linux内核锁实现
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt " href="/2023/06/13/%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0/" target="_self">
+        <div>
+          锁机制信号量参考：  https://tupelo-shen.github.io/2020/04/12/Linux%E5%86%85%E6%A0%B833-%E4%BF%A1%E5%8F%B7%E9%87%8F/ https://blog.csdn.net/u012603457/article/details/52971894 https://www.freesion.com/article/29
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-06-13 22:20" pubdate>
+              2023-06-13
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Linux/">#Linux</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2023/06/13/%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/" target="_self">
+          <img src="/img/linux.svg" srcset="/img/loading.gif" lazyload alt="linux进程调度">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2023/06/13/%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/" target="_self">
+          linux进程调度
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt " href="/2023/06/13/%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/" target="_self">
+        <div>
+          进程调度一个cpu在同一个时刻只能运行一个进程，如果内存中存在多个进程，那么cpu以怎样的顺序来运行这些进程呢？这个工作是由操作系统控制的，操作系统应采用怎么策略来调度这些进程在cpu上执行呢？下面我们将介绍几个进程调度的算法。 进程分类linux将进程分为实时进程和非实时进程，其中非实时进程进一步划分为交互式进程和批处理进程  实时进程：实时进程是指进程响应时间尽可能的短，以达到实时的效果，可以
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-06-13 22:20" pubdate>
+              2023-06-13
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Linux/">#Linux</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2023/06/13/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" target="_self">
+          <img src="/img/linux.svg" srcset="/img/loading.gif" lazyload alt="linux文件系统">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2023/06/13/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" target="_self">
+          linux文件系统
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt " href="/2023/06/13/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" target="_self">
+        <div>
+          文件系统什么是文件系统【维基】文件系统是一种存储和组织计算机数据的方法，它使得对其访问和查找变得容易，文件系统使用文件和树形目录的抽象逻辑概念代替了硬盘和光盘等物理设备使用数据块的概念，用户使用文件系统来保存数据不必关心数据实际保存在硬盘（或者光盘）的地址为多少的数据块上，只需要记住这个文件的所属目录和文件名。 Linux支持很多类型的文件系统，ext2、ext3、ext4以及FAT32/FAT1
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-06-13 22:19" pubdate>
+              2023-06-13
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Linux/">#Linux</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2023/06/13/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/" target="_self">
+          
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2023/06/13/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/" target="_self">
+        <div>
+          C++互斥锁mutex使用与原理什么是mutexC++11中提供了一个互斥锁mutex,它是C++用来实现线程之间互斥的一个类，包含在&lt;mutex&gt;头文件中。mutex共有四种：  std::mutex：最基本的mutex类 std::recursive_mutex：递归mutex类 std::time_mutex：定时mutex类 std::recursive_timed_mutex
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-06-13 22:19" pubdate>
+              2023-06-13
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2023/06/13/Linux%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96/" target="_self">
+          <img src="/img/linux.jpg" srcset="/img/loading.gif" lazyload alt="linux内核启动与初始化">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2023/06/13/Linux%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96/" target="_self">
+          linux内核启动与初始化
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt " href="/2023/06/13/Linux%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96/" target="_self">
+        <div>
+          Linux内核启动与初始化BIOS到bootloader程序当我们按下电源的时候，cpu中的cs和eip寄存器就会装载固定的值，这个其实就是BIOS程序的所在的物理地址。BIOS叫做基本输入输出系统，主要是在用来加载引导程序，然后由引导程序加载内核镜像。  当进入BIOS程序的时候，cpu处于实模式下，程序可以任意的访问物理地址，寻址采用cs+eip方式进行寻址，cs代表段基址，eip表示段内偏移
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-06-13 22:17" pubdate>
+              2023-06-13
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Linux/">#Linux</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2023/06/13/Linux%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84/" target="_self">
+          <img src="/img/linux.svg" srcset="/img/loading.gif" lazyload alt="Linux-mmap内存映射">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2023/06/13/Linux%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84/" target="_self">
+          Linux-mmap内存映射
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt " href="/2023/06/13/Linux%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84/" target="_self">
+        <div>
+          Linux-mmap内存映射 内存分配用户态调用malloc()会分配堆内存空间，而实际上则是完成了一次用户态的内存映射，根据分配空间的大小，内存映射对应的系统调用主要有brk()和mmap()(当然我们也可以直接调用mmap()来映射文件)。对小块内存（小于 128K），C 标准库使用 brk() 来分配，也就是通过移动堆顶的位置来分配内存。这些内存释放后并不会立刻归还系统，而是被缓存起来，这样
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-06-13 22:16" pubdate>
+              2023-06-13
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Linux/">#Linux</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/" target="_self">
+          <img src="/img/linux.jpg" srcset="/img/loading.gif" lazyload alt="Linux的I/O与驱动">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/" target="_self">
+          Linux的I/O与驱动
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt " href="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/" target="_self">
+        <div>
+          Linux的I/O与驱动 本文我们将了解一下linux的IO原理以及linux是如何操作不同的设备的，其实就是linux的设备驱动的工作逻辑。 【参考资料】 Linux I/O 原理和 Zero-copy 技术全面揭秘 linux通用块设备层.pdf csapp书籍 I/O架构linux 的IO表示输入输出，指的是一起操作程序或设备和计算机之间发生书籍传输的过程，它主要分为IO设备和IO接口两部分
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-06-13 22:16" pubdate>
+              2023-06-13
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Linux/">#Linux</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2023/04/21/%E4%B8%AD%E6%96%AD/" target="_self">
+          <img src="/img/linux.svg" srcset="/img/loading.gif" lazyload alt="linux中断">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2023/04/21/%E4%B8%AD%E6%96%AD/" target="_self">
+          linux中断
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt " href="/2023/04/21/%E4%B8%AD%E6%96%AD/" target="_self">
+        <div>
+          Linux 内核中断https://heapdump.cn/article/4514433 【详细】 什么是中断https://www.modb.pro/db/101480 中断是CPU在执行某段程序的时候，发生某种状况，使得CPU不得不停止现在正在运行的程序，转向去执行另一段程序，处理完之后又返回来继续执行原来的程序。 中断的好处是，使得cpu能够处理一些突发事情，能够及时响应紧急事件，如果没有
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-04-21 15:39" pubdate>
+              2023-04-21
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Linux/">#Linux</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2023/04/13/CMU-15445/" target="_self">
+          <img src="/img/cmu15445.svg" srcset="/img/loading.gif" lazyload alt="CMU-15445 数据库">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2023/04/13/CMU-15445/" target="_self">
+          CMU-15445 数据库
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt " href="/2023/04/13/CMU-15445/" target="_self">
+        <div>
+          CMU-15445Project1–BufferPool这个实验主要是完成一个BufferPool Manager，因为磁盘的读写速度很慢，所以我们将在内存中维护一定大小的内存，作为数据库数据的缓冲区，即创建一个BufferPool来做缓冲区。这个实验主要分三个部分，一个是Lru_replacer ，一个是实现一个bufferpool manager instance，一个是parallel bu
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-04-13 21:28" pubdate>
+              2023-04-13
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/CMU15445/">#CMU15445</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2023/04/13/C++%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" target="_self">
+          <img src="/img/C++.svg" srcset="/img/loading.gif" lazyload alt="C++基础知识">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2023/04/13/C++%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" target="_self">
+          C++基础知识
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt " href="/2023/04/13/C++%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" target="_self">
+        <div>
+          C++基础知识【随记】1. 引用指针、引用  引用的本质就是指针常量，一旦初始化完成，就无法再改变 引用实际上是给一个变量起的别名，编译器不会给引用变量开辟新的空间，变量和他的引用变量共用同一块内存   1.引用本质–引用是一个指针常量，引用一旦完成就无法改变  12345678910int main()&#123;	int a = 10;	//自定转化为int* const b=&amp;a;
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-04-13 10:40" pubdate>
+              2023-04-13
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/c/">#c++</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+
+
+  <nav aria-label="navigation">
+    <span class="pagination" id="pagination">
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
+    </span>
+  </nav>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

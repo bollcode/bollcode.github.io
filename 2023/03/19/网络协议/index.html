@@ -1,0 +1,1014 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/basketball.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="bollcode">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="TCP&#x2F;IPOSI模型七层模型主要分为四层模型主要分为数据链路层、网络层、运输层、应用层 物理层：主要是用来基于传输介质实现比特流的传输 数据链路层：负责建立和管理节点间的链路。能够将从物理层接收到的数据进行检查错误和打包成数据帧，然后基于MAC地址进行寻址，主要设备有网卡、交换机等 网络层：他会检查每一帧的数据，然后选择合适的网间路由和交换节点，确保数据的及时传送，将从下层接收到的数据进行ip地">
+<meta property="og:type" content="article">
+<meta property="og:title" content="网络协议">
+<meta property="og:url" content="http://example.com/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="TCP&#x2F;IPOSI模型七层模型主要分为四层模型主要分为数据链路层、网络层、运输层、应用层 物理层：主要是用来基于传输介质实现比特流的传输 数据链路层：负责建立和管理节点间的链路。能够将从物理层接收到的数据进行检查错误和打包成数据帧，然后基于MAC地址进行寻址，主要设备有网卡、交换机等 网络层：他会检查每一帧的数据，然后选择合适的网间路由和交换节点，确保数据的及时传送，将从下层接收到的数据进行ip地">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/net.svg">
+<meta property="article:published_time" content="2023-03-19T13:53:48.808Z">
+<meta property="article:modified_time" content="2023-06-25T08:06:11.349Z">
+<meta property="article:author" content="bollcode">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/net.svg">
+  
+  
+  
+  <title>网络协议 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>bollcode</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="网络协议"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-03-19 21:53" pubdate>
+          2023年3月19日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          12k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          99 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">网络协议</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="TCP-IP"><a href="#TCP-IP" class="headerlink" title="TCP/IP"></a>TCP/IP</h1><h2 id="OSI模型"><a href="#OSI模型" class="headerlink" title="OSI模型"></a>OSI模型</h2><h3 id="七层模型主要分为"><a href="#七层模型主要分为" class="headerlink" title="七层模型主要分为"></a>七层模型主要分为</h3><p>四层模型主要分为数据链路层、网络层、运输层、应用层</p>
+<p>物理层：主要是用来基于传输介质实现比特流的传输</p>
+<p>数据链路层：负责建立和管理节点间的链路。能够将从物理层接收到的数据进行检查错误和打包成数据帧，然后基于MAC地址进行寻址，主要设备有网卡、交换机等</p>
+<p>网络层：他会检查每一帧的数据，然后选择合适的网间路由和交换节点，确保数据的及时传送，将从下层接收到的数据进行ip地址的封装和解封装。这一层的数据称为数据包，主要涉及设备有路由器</p>
+<p>传输层：这一层主要是定义了一些数据传输的协议，负责端到端的数据传输，如TCP/UDP协议，主要是将从下层接收的数据进行分段和传输，到达目的地址后再进行重组，这一层数据叫做段。</p>
+<p>应用层：该层直接向用户进程提供服务，这一层包含的协议有http协议，FTP协议等</p>
+<h3 id="TCP-IP四层参考模型"><a href="#TCP-IP四层参考模型" class="headerlink" title="TCP/IP四层参考模型"></a>TCP/IP四层参考模型</h3><ul>
+<li>应用层：应用层主要负责各种不同应用之间的协议，比如http协议、smtp协议等。</li>
+<li>传输层：传输层主要负责可靠传输的TCP协议、高效传输的UDP协议。主要是传输应用层的数据包。</li>
+<li>网络层：负责寻址的IP协议。网络层可以进行网络连接的建立和中止以及IP地址的寻址功能</li>
+<li>网络接口层：主要负责将数字信号在物理通道中的准确传输。</li>
+</ul>
+<blockquote>
+<ul>
+<li>网络接口层：这一层主要负责数据在主机和网络之间的交换，它和OSI参考模型中的物理层和数据链路层相对应。同时它实现网卡接口的网络驱动，以处理数据在以太网线等物理媒介上的传输。</li>
+<li>网络层：网络层负责实现数据包的选路和转发。将从下层接收到的数据进行ip地址的封装和解封装，然后选择合适的网络路由和交换节点进行数据包的转发。</li>
+<li>传输层：这一层主要负责数据端到端的传输，这一层定义了两个协议，一个是面向连接的传输控制协议TCP和一个高效传输的UDP协议</li>
+<li>应用层：应用层主要负责各种不同应用之间的协议，比如HTTP协议，smtp协议等</li>
+</ul>
+<p><strong>数据链路层（驱动程序）封装了物理网络的电气细节；网络层封装了网络连接的细节；传输层则为应用程序封装了一条端到端的逻辑通信链路，它负责数据的收发、链路的超时重连等。</strong></p>
+</blockquote>
+<h2 id="HTTP"><a href="#HTTP" class="headerlink" title="HTTP"></a>HTTP</h2><h3 id="HTTP协议"><a href="#HTTP协议" class="headerlink" title="HTTP协议"></a>HTTP协议</h3><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/YouJeffrey/p/15334068.html">https://www.cnblogs.com/YouJeffrey/p/15334068.html</a></p>
+<blockquote>
+<p>HTTP协议的组成：</p>
+</blockquote>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/2432200-20210925120910224-253956630.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h4 id="请求"><a href="#请求" class="headerlink" title="请求"></a>请求</h4><h5 id="请求行："><a href="#请求行：" class="headerlink" title="请求行："></a><strong>请求行：</strong></h5><ul>
+<li><code>请求方法post/get</code>、<code>URL字段</code>、<code>HTTP协议版本字段</code></li>
+</ul>
+<h5 id="请求头："><a href="#请求头：" class="headerlink" title="请求头："></a><strong>请求头：</strong></h5><ul>
+<li>Host: 请求的主机名</li>
+<li>User-Agent：产生请求的浏览器类型</li>
+<li>Accept：客户端可识别的内容类型列表</li>
+<li>cookie字段</li>
+<li>……</li>
+</ul>
+<h5 id="请求正文"><a href="#请求正文" class="headerlink" title="请求正文"></a><strong>请求正文</strong></h5><ul>
+<li>get请求的内容在URL字段后面</li>
+<li>post请求在请求正文body里</li>
+</ul>
+<h4 id="响应"><a href="#响应" class="headerlink" title="响应"></a>响应</h4><h5 id="相应行"><a href="#相应行" class="headerlink" title="相应行"></a>相应行</h5><p><code>响应状态码</code>(404,200这些)、<code>响应信息</code>、<code>HTTP版本</code></p>
+<h5 id="响应头"><a href="#响应头" class="headerlink" title="响应头"></a>响应头</h5><ul>
+<li>Content-Length：表示内容长度</li>
+<li>Content-Type: 表示后面的文档格式类型</li>
+<li>Server：表示服务器类型</li>
+<li>…..</li>
+</ul>
+<h5 id="相应正文"><a href="#相应正文" class="headerlink" title="相应正文"></a>相应正文</h5><p>响应正文：就是响应的消息体</p>
+<h3 id="HTTPS协议"><a href="#HTTPS协议" class="headerlink" title="HTTPS协议"></a>HTTPS协议</h3><p>HTTP协议是信息明文传输，存在安全风险的问题，HTTPS则解决了HTTP协议不安全的缺点，通过在TCP和HTTP协议网络层之间加入了SSL/TLS安全协议，使得报文加密传输</p>
+<p>HTTPS在TCP三次握手之后还要进行SSL/TLS的握手过程，才能进行加密报文的传输</p>
+<p>HTTP默认端口是80,而HTTPS默认的端口是443</p>
+<h3 id="HTTP1-1-2-3的区别"><a href="#HTTP1-1-2-3的区别" class="headerlink" title="HTTP1.1/2/3的区别"></a>HTTP1.1/2/3的区别</h3><p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20230328160911584.png" srcset="/img/loading.gif" lazyload alt="image-20230328160911584"></p>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20230328160939384.png" srcset="/img/loading.gif" lazyload alt="image-20230328160939384"></p>
+<h2 id="TCP-UDP"><a href="#TCP-UDP" class="headerlink" title="TCP/UDP"></a>TCP/UDP</h2><h3 id="多路分解"><a href="#多路分解" class="headerlink" title="多路分解"></a>多路分解</h3><p>进程的信息交付和传输都是通过socket套接字完成的，套接字也是完成多路复用和分解的</p>
+<p>当进程使用网络传输的时候，会生成一个套接字，并将这个套接字交给操作系统内核维护，套接字会绑定每个进程的，得到了指定的套接字就能够知道指定的进程。</p>
+<ol>
+<li>每个套接字有唯一的标识</li>
+<li>消息报文段有特殊的字段来指示该报文段所要交付的套接字</li>
+<li>这些特殊字段包括了源端口号字段和目的端口号字段</li>
+</ol>
+<blockquote>
+<p>运输层分解服务的基本流程</p>
+</blockquote>
+<p>在主机上每个套接字都能够分配一个端口号，当有报文来到主机的时候，我们会提取出报文段的目的端口号，然后找到指定的绑定该端口号的套接字，并把这个报文内容给到套接字，然后数据就会通过这个套接字进入到了进程当中。</p>
+<h4 id="1-无连接的多路分解"><a href="#1-无连接的多路分解" class="headerlink" title="1. 无连接的多路分解"></a>1. 无连接的多路分解</h4><p>一个udp的套接字是由一个二元组标识的，也就是只需要目的端口号和目的ip，因为udp不需要建立连接，所以，假如有数据报来到了主机，直接看这个报文对应的目的端口号和ip对应的套接字，然后将数据给到这个套接字就行，这个套接字可以让很多的不同源ip和端口号的来使用。</p>
+<blockquote>
+<p>补充：当我们开启一个线程之后，这个套接字就生成了，后面不会生成对应端口号的套接字</p>
+<p>如果是udp连接，那么就可以一个主机给多个主机发送数据，但是tcp不行，因为要建立一对一的连接。</p>
+</blockquote>
+<h4 id="2-面向连接的多路分解"><a href="#2-面向连接的多路分解" class="headerlink" title="2. 面向连接的多路分解"></a>2. 面向连接的多路分解</h4><p>一个tcp的套接字是由四个二元组标识的，因为tcp在传输内容的之前需要建立连接，这个建立连接就是在服务器端创建一个四元组的套接字，包括源ip和端口号，以及目的IP和端口号。也就是说和服务器进行数据传输的都是通过各自的套接字，但是这些套接字都是针对于同一个进程而言的。</p>
+<blockquote>
+<p>补充：每一个连接的socket都是维护的连接状态，如果后面连接断开，就会把这个socke给删除</p>
+</blockquote>
+<h3 id="UDP–无连接运输"><a href="#UDP–无连接运输" class="headerlink" title="UDP–无连接运输"></a>UDP–无连接运输</h3><p>针对于无连接，主动权是在自己，我想发送就行，至于对面有没有收到我不管。</p>
+<h4 id="1-udp报文段结构"><a href="#1-udp报文段结构" class="headerlink" title="1. udp报文段结构"></a>1. udp报文段结构</h4><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20220915142213404.png" srcset="/img/loading.gif" lazyload alt="image-20220915142213404" style="zoom:50%;">
+
+<h4 id="2-字段：校验和"><a href="#2-字段：校验和" class="headerlink" title="2. 字段：校验和"></a>2. 字段：校验和</h4><p>用来检查这个报文段是否出现错误。</p>
+<p>将所有要发送的数据进行相加，然后取反码就得到了所谓的校验和</p>
+<p>然后在接收端通过校验和再和所有的数据相加，得到了结果如果不是FFFF那么就出现了错误在传输过程中。</p>
+<p><strong>但是udp对于差错是无法进行恢复的，他最多就是将这个出了错的报文段给丢弃掉，或者给出一个警告。</strong></p>
+<h3 id="可靠数据传输原理"><a href="#可靠数据传输原理" class="headerlink" title="可靠数据传输原理"></a>可靠数据传输原理</h3><h4 id="停等协议"><a href="#停等协议" class="headerlink" title="停等协议"></a>停等协议</h4><blockquote>
+<p>可靠数据传输协议 –reliable data transfer protocol         rdt</p>
+</blockquote>
+<p>rdt1.0 - rdt3.0 停等协议</p>
+<p>这一块看书</p>
+<h4 id="流水线可靠数据传输协议"><a href="#流水线可靠数据传输协议" class="headerlink" title="流水线可靠数据传输协议"></a>流水线可靠数据传输协议</h4><p>rdt3.0协议是一个功能正确的协议，但是他的性能不好，因为他需要每次发送一个数据之后要停下来等待这个数据的发送结果，然后再发送第二个数据。所以性能不好。</p>
+<p>然后流水线协议就是我一直发，我不等你回来，我先发过去再说，如果发送过程出错了我再回到出错的地方通过手段解决出错的地方</p>
+<blockquote>
+<p>流水线协议带来的影响</p>
+</blockquote>
+<ol>
+<li><p>必须添加序号范围，因为每个输送中的分组（不计算重传的）必须有一个唯一的序号，而且也许有多个在传输中的未确认报文</p>
+</li>
+<li><p>协议的发送方和接收方也许不得不缓存多个分组。发送方的最低限度应当缓存那些<strong>已发送但是还没有进行确认的分组</strong>，<strong>然后接收方也许要缓存那些已经接收成功的分组</strong>。</p>
+</li>
+<li><blockquote>
+<p>所需序号范围和对缓冲的要求<strong>取决于数据传输协议如何处理</strong>丢失、损坏以及延时过大的分组</p>
+<p>解决流水线的差错恢复有两种基本方法：</p>
+<ol>
+<li>回退N步（go-back N）（GBN）</li>
+<li>选择重传（即选择性的重传）（selective repeat） （SR）</li>
+</ol>
+</blockquote>
+</li>
+</ol>
+<p>下面我们就来介绍这两个协议的具体实现方法</p>
+<h4 id="回退N步（GBN）–滑动窗口协议"><a href="#回退N步（GBN）–滑动窗口协议" class="headerlink" title="回退N步（GBN）–滑动窗口协议"></a>回退N步（GBN）–滑动窗口协议</h4><p>在回退N步协议中，我们允许多个分组同时进行传输，不需要确认等待，但是他的发送也受限于在流水线中未确认的分组数不能超过某个最大允许数N</p>
+<blockquote>
+<p>对于发送方</p>
+</blockquote>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20220915152545163.png" srcset="/img/loading.gif" lazyload alt="image-20220915152545163"></p>
+<p>32 - 45都是已经发送出去的数据了，但是接收端还没有发送ack确认</p>
+<p>如果收到了32号的ack32确认，那么滑动窗口向右移动，52就可以纳入发送窗口内</p>
+<blockquote>
+<p>对于接收方</p>
+</blockquote>
+<p>因为发送发发送了32-45的报文，然后假如32-38的报文都没了，这个时候来了一个39的报文，然后将39报文交给调用端，调用端会判断这个序号和我上次接收的序号是不是挨着的，接收端上次接受了31，他想要32，但是给了39，他就会丢弃这个39号，并且继续发送ack31，让发送端继续给我发送32，这就是回退到最开始。</p>
+<blockquote>
+<p>GBN发送方的响应的三个事件</p>
+</blockquote>
+<ol>
+<li>上层调用–就是开始发送</li>
+<li>收到ack编号，这个是接收方发送过来的，接收方只会发送已经接收成功连续的最大ack编号。</li>
+<li>超时事件： 如果发生超时了，就会重新发送所有已经发送但是没有确定的分组，对于发送成功并确认的删除定时器</li>
+</ol>
+<h4 id="选择重传-SR"><a href="#选择重传-SR" class="headerlink" title="选择重传  SR"></a>选择重传  SR</h4><blockquote>
+<p>选择重传就是选择性的传那些超时和丢失的分组，GBN是直接最小的未确认以及之后的的重传，SR不是，SR会在接收方和发送方都有一个窗口用来缓存发送成功和乱序接收的分组</p>
+</blockquote>
+<p>在发送方有一个大小为N的窗口，这个窗口里面包含发送未确认的，发送确认的和，未发送的</p>
+<p>在接收方也有一个大小为N 的缓存窗口，这个窗口用来临时存储乱序到达的分组。</p>
+<blockquote>
+<p>流程</p>
+</blockquote>
+<p>当发送方开始将窗口内的数据进行发送的时候，然后接收方会将乱序到达的分组给放到自己的窗口内，如果这个窗口的rcv_base确认了，那么就会从这下标开始遍历窗口，将已经确认收到的分组交给进程。</p>
+<p>对于接收方比较简单，就是维护一下已经到了的分组，对于发送方来说，什么时候才会发生窗口的滑动呢？</p>
+<p>假如2号分组在发送过程丢失了，然后窗口大小是4，但是ack3和ack4，ack5都收到了，但是没有收到ack2，那么就会就不会发生窗口移动，然后就会触发2号分组的重发机制，将重新发送分组2，这个时候因为窗口满了，所以不会发生其他的数据发送，</p>
+<p>重发之后，接收方接到了2号分组，就会先滑动自己的窗口到6，将2，3，4，5都交付给进程，然后当发送方也收到了ack2，就会移动窗口到6，这个时候就可以发6，7，8，9分组了。</p>
+<blockquote>
+<p>假如上述的2号分组接收方确认了，也发送了ack但是，这个ack丢失了，并且接收方已经滑动了窗口，这个时候2号分组再次重发，<strong>但是再接收方的窗口内没有这个序号了，但是还是会重新发送一次ack2</strong>，这个就是避免这个情况发生的</p>
+</blockquote>
+<h3 id="TCP–面向连接的运输"><a href="#TCP–面向连接的运输" class="headerlink" title="TCP–面向连接的运输"></a>TCP–面向连接的运输</h3><p><strong>上面的协议都是为了tcp准备的，因为udp是单向的，根本就接收不到ack</strong></p>
+<h4 id="Tcp报文段结构"><a href="#Tcp报文段结构" class="headerlink" title="Tcp报文段结构"></a>Tcp报文段结构</h4><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20220915163919069.png" srcset="/img/loading.gif" lazyload alt="image-20220915163919069" style="zoom:50%;">
+
+<blockquote>
+<p>32比特的序号字段sequence number field</p>
+<p>32比特的确认号字段 acknowledgement number field</p>
+</blockquote>
+<p>这个使用给分组标号的，因为我们前面讲了要给分组标号的，并且ack也要编号，才知道是那个分组被正确接受了了</p>
+<blockquote>
+<p>16比特的接收窗口字段（receive window field）</p>
+</blockquote>
+<p>这个字段是用来流量控制的，指示该接收方愿意接受的字节数量</p>
+<blockquote>
+<p>4比特的首部长度字段</p>
+</blockquote>
+<blockquote>
+<p>6比特的标志字段</p>
+</blockquote>
+<h4 id="序号和确认号"><a href="#序号和确认号" class="headerlink" title="序号和确认号"></a>序号和确认号</h4><blockquote>
+<p>序号</p>
+</blockquote>
+<p>这个序号不是报文段的序号，而是第n各报文段的第一个字节的序号</p>
+<p>因为刚开始会给所有的字节进行编号，然后取每个报文段的第一个字节的编号作为序号</p>
+<blockquote>
+<p>确认号</p>
+</blockquote>
+<p>确认号就是我这个主机想要你发送过来的字节的编号</p>
+<p>假如A已经收到了555前面的字节，那么他就会在确认号中添加556</p>
+<blockquote>
+<p>累积确认</p>
+</blockquote>
+<p>假如主机收到了0-567字节编号的报文段，900-1000字节编号的报文段，但是没有收到中间的，那么主机会在确认号中加入568，不是1001，这个叫做累积确认，但是那个失序到达的数据是否留下来，根据TCP编程实现人员来定</p>
+<h4 id="可靠数据传输"><a href="#可靠数据传输" class="headerlink" title="可靠数据传输"></a>可靠数据传输</h4><h5 id="超时重传机制"><a href="#超时重传机制" class="headerlink" title="超时重传机制"></a>超时重传机制</h5><p>当在一定的事件没有收到确认ack就重新发送ack</p>
+<blockquote>
+<p>累积确认可以避免一定的超时重传</p>
+<p>比如两个报文都成功发送了，但是第一个ack没有回来，但是在超时间隔内，第二个ack回来了，因为是累积确认说明都收到了，就不用重传。</p>
+</blockquote>
+<h5 id="快速重传–冗余ack"><a href="#快速重传–冗余ack" class="headerlink" title="快速重传–冗余ack"></a>快速重传–冗余ack</h5><p>因为tcp是累积式的，所以假如几个报文发送出去后，但是第一个报文丢失了，那么接收端就会发送第一个报文的ack1，然后后面几个报文都到了，也返回了ack1，（因为是累积式的），所以发送端会重复收到多个ack1，如果这个时候还没有发生超时，那么就会快速重传</p>
+<h5 id="GBN还是SR？"><a href="#GBN还是SR？" class="headerlink" title="GBN还是SR？"></a>GBN还是SR？</h5><p>TCP使用的可靠传输协议其实更偏向于GBN，但是是改版的GBN，因为在接收方缓存了乱序到达的报文段，但是这种会带来很多的不必要的重传，所以也有GBN和SR混合的，就是选择的重传。</p>
+<h4 id="流量控制"><a href="#流量控制" class="headerlink" title="流量控制"></a>流量控制</h4><blockquote>
+<p>udp没有流量控制</p>
+</blockquote>
+<p>所谓的流量控制就是有一个缓冲区，防止发送方发的太快，进程B会将当前未使用的缓存空间（这是什么意思呢？就是进程B读取这个缓冲区比较慢，但是他已经接收到A进程发来的数据，也发送了确认给A进程，但是由于自己读取缓冲区慢，导致自己的缓冲窗口变小了，所以要让A进程下次别发太多数据了）记录在TCP报文中发送给进程A，进程A根据这个调整自己的窗口大小，来防止发送过多数据导致了B服务端的缓冲区溢出</p>
+<h4 id="TCP连接管理"><a href="#TCP连接管理" class="headerlink" title="TCP连接管理"></a>TCP连接管理</h4><p>三次握手–四次挥手</p>
+<h5 id="建立连接–三次握手"><a href="#建立连接–三次握手" class="headerlink" title="建立连接–三次握手"></a>建立连接–三次握手</h5><blockquote>
+<p>第一步</p>
+</blockquote>
+<p>客户端的TCP首先向服务端TCP发送一个特殊的报文段，这个报文段不包含任何应用层数据，但是</p>
+<p>SYN标志位被置为1，</p>
+<p>并且客户端随机生成选择一个序号seq（client_isn），然后将这个序号放进SYN报文段的序号中，然后发送给服务端</p>
+<p>然后进入syn_sent状态</p>
+<blockquote>
+<p>第二步 –服务端到底有没有用分配资源？（答案是没有–<strong>目的就是防止SYN泛洪攻击</strong>）</p>
+</blockquote>
+<p>服务端接收到这个SYN报文段的时候，开始进行解析</p>
+<p>为TCP连接分配TCP缓存和变量(可能会造成SYN泛洪攻击，所以在第三次握手才分配)</p>
+<p>然后向客户端发送允许连接的报文段</p>
+<p>这个报文段也不包含任何应用层数据，SYN标志位还是1，然后TCP的确认序号（ack）是client_isn+1，</p>
+<p>并带上自己的初始序号（server_isn）,这个报文段称为SYNACK报文段</p>
+<p>然后进入syn_rcvd状态</p>
+<blockquote>
+<p>第三步 双方都建立连接状态</p>
+</blockquote>
+<p>客户端收到SYNACK报文段之后，就开始分配缓存和变量</p>
+<p>然后进入到ESTABLISHED阶段</p>
+<p>并向服务器发送另一个报文段，</p>
+<p>这个报文段是对服务器允许连接的确认，将确认序号置为server_isn+1，并把SYN置为0</p>
+<p>这一次是可以携带应用层的数据的。</p>
+<p>服务端接收到ACK报文后，也进入了ESTABLISHED状态，然后分配资源用来接收数据。</p>
+<blockquote>
+<p>流程图</p>
+</blockquote>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20220916104925813.png" srcset="/img/loading.gif" lazyload alt="image-20220916104925813"></p>
+<h5 id="为什么要进行三次握手"><a href="#为什么要进行三次握手" class="headerlink" title="为什么要进行三次握手"></a>为什么要进行三次握手</h5><blockquote>
+<p>1.阻止历史连接 </p>
+</blockquote>
+<p>第一种情况：在一次连接中，假如客户端发送一个连接请求后宕机了，然后这个请求到达之后就建立连接状态（两次连接），一旦建立连接状态就会发送数据给客户端，但是客户端宕机了，就不会收到，造成资源浪费。</p>
+<p>第二种情况：客户端发送请求宕机后又恢复了，然后又再次发送了请求，但是SYN字段的client_isn是随机生成的，所以不会和第一次一样。最开始那个连接到达之后，假如直接就建立连接状态，就开始发送数据给客户端，但是客户端的想要的报文段的确认序号是第二次生成的client_isn+1而不是第一次的client_isn+1.但是这个回来的是第一次的，所以客户端就会判断这个连接不是自己的，就会发送一个RST字段断开，但是这个时候两次连接已经发送数据过来了，所以造成资源的浪费。但是三次连接就不会这样，因为只有在服务端第三次的握手成功后才会建立连接并发送数据，不会造成资源的浪费，也不会建立历史连接，当客户端收到的确认字段不匹配的时候，直接发送RST，并且服务端也不会发送数据过来，不会造成浪费。第二次握手的时候会在服务端维持半连接状态，第三次才会全连接状态</p>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/format,png.png" srcset="/img/loading.gif" lazyload alt="三次握手避免历史连接"></p>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/fe898053d2e93abac950b1637645943f.png" srcset="/img/loading.gif" lazyload alt="两次握手无法阻止历史连接"></p>
+<blockquote>
+<p>2.两次连接造成资源浪费</p>
+</blockquote>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/format,png-16632985302645.png" srcset="/img/loading.gif" lazyload alt="两次握手会造成资源浪费"></p>
+<blockquote>
+<p>3.四次握手没必要</p>
+</blockquote>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/format,png-16632985962098.png" srcset="/img/loading.gif" lazyload alt="四次握手与三次握手"></p>
+<h5 id="为何随机化client-isn"><a href="#为何随机化client-isn" class="headerlink" title="为何随机化client_isn"></a>为何随机化client_isn</h5><blockquote>
+<ul>
+<li>为了防止历史报文被下一个相同四元组的连接接收（主要方面）；<ul>
+<li>因为四元组包含源ip端口号和目的IP和端口号，都是会找到指定的socket</li>
+<li>找到了socket就会接收数据</li>
+</ul>
+</li>
+<li>为了安全性，防止黑客伪造的相同序列号的 TCP 报文被对方接收；</li>
+</ul>
+</blockquote>
+<p>假如，每一个客户端的发送的client_isn都是从0开始，当建立连接之后，客户端开始发送报文数据，假如一个报文段的seq = 101，但是此时这个报文段被阻塞了，然后这个时候服务器宕机了，然后重启之后，客户端和服务端建立连接，然后这个时候那个之前阻塞的报文段到了，并且恰好落入了服务端的接收窗口内，就会接收这个历史数据。</p>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/isn%E7%9B%B8%E5%90%8C.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<blockquote>
+<p>如果采用了随机化client_isn</p>
+</blockquote>
+<p>很大程度就避免了所谓的历史数据被接收的情况</p>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/isn%E4%B8%8D%E7%9B%B8%E5%90%8C.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h5 id="断开连接–四次挥手"><a href="#断开连接–四次挥手" class="headerlink" title="断开连接–四次挥手"></a>断开连接–四次挥手</h5><blockquote>
+<p>第一步</p>
+</blockquote>
+<p>首先客户端发送一个全开连接的请求，发送一个特殊的报文段，这个报文的标志位FIN被置为1</p>
+<blockquote>
+<p>第二步  （第一步到这一步属于FIN-WAIT1阶段）</p>
+</blockquote>
+<p>服务端接收到这个报文段的时候，立即返回一个报文段ack确认</p>
+<blockquote>
+<p>第三步   （第二步到这一步属于FIN-WAIT2阶段）</p>
+</blockquote>
+<p>过了一段时间（这段时间就是为了给服务端处理那些之前的请求数据），服务端就告诉客户端我这边你发我的数据已经全部处理完成了，然后发送一个fin报文段给客户端。</p>
+<blockquote>
+<p>第四步    (第三步到这一步属于Time-Wait阶段)</p>
+</blockquote>
+<p>客户端接收到服务端发送来的ACK和FIN报文段之后，就发送一个ACK报文段告诉服务端你可以断开了。但是客户端不马上断开，等待一定时间断开，因为可能这个ack失败了，服务端会重发FIN，要保证服务端能够顺利断开才结束（就是在Time-wait阶段收不到FIN了，就认为服务端断开了）。</p>
+<p>服务端断开后会将4元组给删除掉。</p>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/format,png-166330086821815.png" srcset="/img/loading.gif" lazyload alt="客户端主动关闭连接 —— TCP 四次挥手"></p>
+<h4 id="TCP拥塞控制"><a href="#TCP拥塞控制" class="headerlink" title="TCP拥塞控制"></a>TCP拥塞控制</h4><p>TCP必须使用的是端到端拥塞控制，而不是使用网络辅助的拥塞控制</p>
+<p>TCP采用的方法是让每一个发送方根据自己所能感知的网络拥塞程度来限制自己的发送速率</p>
+<ul>
+<li>如果一个TCP发送方感知自己从他的目的地之间的路径没有拥塞，他就会增加自己的发送速率</li>
+<li>如果感知到了有拥塞，就会降低自己的发送速率</li>
+</ul>
+<blockquote>
+<p>TCP拥塞控制算法</p>
+</blockquote>
+<ol>
+<li>慢启动</li>
+<li>拥塞避免</li>
+<li>快速恢复</li>
+</ol>
+<blockquote>
+<p>感知拥塞</p>
+</blockquote>
+<p>如果发送方超时或者接收到3个重复ACK，发送方就认为在发送方到接收方的路径上出现了拥塞指示。</p>
+<h5 id="慢启动"><a href="#慢启动" class="headerlink" title="慢启动"></a>慢启动</h5><p>当刚开始建立连接之后，cwnd的值通常初始设置为1MSS。每个Mss当收到确认后就会增加一个Mss，相当于以指数形式增长。</p>
+<blockquote>
+<p>什么时候结束慢启动增长呢</p>
+</blockquote>
+<ol>
+<li>如果存在了一个超时指示的丢包事件（认为产生拥塞），<strong>这个时候会直接把拥塞窗口设置为1</strong>，然后把慢启动阈值（ssthresh）设置为刚才产生拥塞时的拥塞窗口的一半。</li>
+<li>慢启动结束的第二种方式就是直接和慢启动阈值有关，当慢启动拥塞窗口超过了慢启动阈值后就会停止慢启动方式，从而进入拥塞避免阶段，当进入拥塞避免阶段后，TCP会很谨慎的增加拥塞窗口值。</li>
+<li>第三种结束慢启动的方式是，如果检查到了三个冗余的ACK，TCP发送方肯定会快速重传进入快速恢复阶段。</li>
+</ol>
+<h5 id="拥塞避免"><a href="#拥塞避免" class="headerlink" title="拥塞避免"></a>拥塞避免</h5><p>一旦进入拥塞避免阶段，那么拥塞窗口的大小就会变成大概上次遇到拥塞时候的一般，此时将采用一种比较保守的方式进行增加拥塞窗口的大小，每个RTT只增加一个MSS。这个如何实现呢？</p>
+<p>一种通用的方法是对于TCP无论何时到达一个新的确认，就将拥塞窗口增加一个MSS。例如在一个RTT内发送了10个报文段，每个ACK到达后都只增加1/10个MSS大小。</p>
+<blockquote>
+<p>什么时候结束拥塞避免阶段呢？</p>
+</blockquote>
+<ol>
+<li>当出现超时时，<strong>就会直接把拥塞窗口设置为1</strong>，并且把慢启动阈值设置为出现拥塞时的窗口大小变为一半，然后<strong>继续慢启动</strong></li>
+<li>当接收到3个冗余ACK时，<strong>拥塞窗口大小设置为之前的一半</strong>，将慢启动阈值设置为拥塞窗口的一半，然后<strong>进入快速恢复阶段。</strong></li>
+</ol>
+<h5 id="快速恢复"><a href="#快速恢复" class="headerlink" title="快速恢复"></a>快速恢复</h5><p>一般时接收到了3个冗余的ack触发的，这个时候会将拥塞窗口大小设置为一般，<strong>然后对收到的每个冗余ACK，窗口大小都会增加1个MSS</strong>，但是如果收到了非冗余ACK，那么就开始进入拥塞避免阶段了，每个RTT只增加一个MSS。</p>
+<blockquote>
+<p>如何结束快速恢复阶段</p>
+</blockquote>
+<p>超时的时候就会进入慢启动阶段，拥塞窗口变为1，阈值变为一半</p>
+<p>冗余ACK进入快速恢复阶段（这个时候已经进入了拥塞避免阶段）</p>
+<h5 id="基本流程"><a href="#基本流程" class="headerlink" title="基本流程"></a>基本流程</h5><p>首先先进入慢启动过程，接收到一个ack就增加一个MSS，然后如果发送方超时或者接收到3个冗余ACK，那么就会认为发生阻塞，然后将阈值设为发生阻塞的时候的一半，然后拥塞窗口大小设为1，然后继续进入慢启动阶段，如果到达阈值之后，就会进入拥塞避免阶段，一个RTT时间内增加一个MSS，然后如果遇到了超时或者3个冗余ACK就会放生状态变化，超时会进入到慢启动阶段，窗口设为1，然后阈值减半，然后继续重复之前的；如果3个冗余ACK就会进入快速恢复阶段，这个阶段会将阈值减半，然后遇到一个冗余ACK就增加一个MSS，直到接收到非冗余ACK进入拥塞避免阶段，超时就会进入慢启动阶段。</p>
+<h3 id="URL解析过程"><a href="#URL解析过程" class="headerlink" title="URL解析过程"></a>URL解析过程</h3><p>首先将url解析成协议、网络地址、资源路径，然后根据网络地址请求DNS服务器，先请求本机上的DSN有没有缓存过，如果有的话直接返回ip地址，如果没有则向外部DNS服务器解析域名。</p>
+<p>获得IP地址后，我们还需要获得端口号，http协议的默认端口号是80，然后根据这个ip地址和端口号，我们就去建立TCP连接，TCP连接是三次握手方式，首先发送方会发送一个SYN报文给服务端，这个报文的序列号是随机初始化的，syn标志位为1 ，然后服务端接收到之后，就会发送一个synack报文告诉发送方我接收到了，之后客户端接收到这个synack报文段后就会发送一个ack报文段给服务端，服务端接收到ack报文后就分配资源并建立连接，然后就可以发送http报文段了，开始向服务端进行发送http请求了，然后客户端对接收的数据渲染到浏览器，当数据接收完成之后就会断开TCP连接，这个断开连接方式是四次挥手，客户端先发送一个fin字段给服务端，服务端接收到之后，就发送一个ack字段给客户端，然后一段时间后再发送一个fin字段给客户端，客户端接收到fin字段后就发送一个ack字段给服务端，然后进入timewait阶段，然后服务端接收到ack字段后就会断开连接，客户端在结束timewait阶段后也断开了连接。</p>
+<blockquote>
+<p><strong>第一步：</strong>获取URL中的域名，然后根据此域名去DNS域名解析器中查询域名对应的IP地址，首先先去本地DNS中查询是不是有此域名的缓存，如果有直接返回对应的IP，如果没有，那么就在本地DNS中获取根域名服务器地址，然后请求根域名服务器，然后在根域名服务器找到对应的顶级域名服务器，然后再找到对应的权威域名服务器，找到了权威域名服务器后然后就能能够获取到对应域名的IP地址，然后将这个IP地址返回给客户端。</p>
+</blockquote>
+<blockquote>
+<p><strong>第二步</strong>：当我们获取到服务端的IP地址后，我们开始解析URL并构建HTTP请求报文，在http请求报文中，主要包含三个部分，分别是http请求行、http请求头、http请求体。请求行中主要包含http协议版本，URL，请求方法。请求头中包含一些属性信息，请求的主机名，客户端接受的内容类型，cookie字段等。请求体中包含了此次请求的真正内容。GET的请求内容在URL中，POST的请求内容在请求体中。</p>
+</blockquote>
+<blockquote>
+<p><strong>第三步</strong>：构建完成http请求报文后，因为http协议是基于TCP协议实现的，TCP是面向连接的可靠传输协议。所以先建立客户端和服务端的连接，采用的是三次握手方式。具体流程是：客户端先发送一个SYN报文段给服务端，发送序号是随机生成的，TCP头部的SYN标志位置1，然后客户端进入了SYN_SENT状态；当服务端接收到SYN报文之后，然后发送一个SYNACK报文段给客户端，表示自己收到了SYN报文，然后进入SYN_RCVD状态；客户端收到这个SYNACK报文段后，然后再发送一个ACK报文段给服务端，然后进入到ESTABLISHED阶段，服务端收到ACK报文段后也进入到ESTABLISHED阶段。自此，客户端和服务端的连接建立完成。</p>
+<p>将http报文头部加上TCP报文头，如果http数据包很大，超过了MSS，就分割成多个进行发送。</p>
+</blockquote>
+<blockquote>
+<p><strong>第四步</strong>：构建完成TCP报文段之后，然后再加上IP头部，IP头部中包含了源主机IP和目标主机IP</p>
+</blockquote>
+<blockquote>
+<p><strong>第五步</strong>：构建完成IP报文之后，在IP数据包的前面再加上MAC头部，MAC地址头部也是包含了发送方和接受方的MAC地址。MAC地址是固定的，它位于网卡之中的ROM区域中，出厂时就初始化完成了。但是接收方的MAC如何获取呢？采用ARP协议，先查询自己缓存中有没有接收方IP对应的MAC地址，如果没有就广播一下来获取接收方IP对应的MAC地址。</p>
+</blockquote>
+<blockquote>
+<p><strong>第六步</strong>：构建完成报文之后，然后交给网卡驱动程序，然后网卡驱动程序将数据写入到网卡的缓存区，然后将数据转换为电信号通过网线传输出去。</p>
+</blockquote>
+<blockquote>
+<p><strong>第七步</strong>：首先是经过交换机，交换机中维护了MAC地址和端口的对应关系表，将数据发送到交换机后，就可以根据报文中的目的MAC地址选择对应的端口发送出去。</p>
+</blockquote>
+<blockquote>
+<p><strong>第八步</strong>：经过交换机后，数据来到路由器中，路由器的每个端口都是具有IP地址和MAC地址的，而交换机则不具有。当数据来到路由器后，在路由器中有一个路由表，记录了IP地址和端口号的对应关系，以及掩码信息。数据来到路由器后，原先的MAC地址就没用了，然后提取目标IP，然后和子网掩码就行与操作之后，查询路由表选择合适的端口发送出去，当然发送之前要获取下一个接收方的MAC地址，然后再将数据发送到交换机中，重复之前的步骤。</p>
+</blockquote>
+<blockquote>
+<p><strong>第九步</strong>：最后数据到达了目的主机，目的主机将接收到的数据通过一层层的协议解析，最后获得了发送方真正要发送的数据。然后进行数据处理并发送响应报文。</p>
+</blockquote>
+<blockquote>
+<p><strong>第十步</strong>：发送完成之后，客户端接收到数据之后断开连接，采用四次挥手协议：客户端先发送一个FIN报文给服务端，然后进入到FIN_WAIT1阶段；服务端接收到FIN报文段后，进入CLOSED_WAIT阶段，然后发送一个ACK报文段给客户端；客户端接收到ACK报文段后，进入到FIN_WAIT2阶段；服务端经过一段时间后发送一个FIN报文段，然后进入LAST_ACK阶段，客户端接收到FIN字段后发送一个ACK报文段给服务端，客户端进入TIME_WAIT阶段，服务端接收到ACK报文段后进入CLOSED阶段，客户端经过TIME_WAIT后也进入CLOSED阶段。至此一次HTTP请求完成。</p>
+</blockquote>
+<h3 id="交换机、路由器之间的关系"><a href="#交换机、路由器之间的关系" class="headerlink" title="交换机、路由器之间的关系"></a>交换机、路由器之间的关系</h3><p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1813700">https://cloud.tencent.com/developer/article/1813700</a></p>
+<h2 id="MQTT"><a href="#MQTT" class="headerlink" title="MQTT"></a>MQTT</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/ShallowGreen/article/details/122753783"><strong>mqtt消息格式</strong></a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43871650/article/details/111942115"><strong>mqtt协议详解</strong></a></p>
+<p>Mqtt协议是一个基于TCP/IP的订阅发布模式的轻量级通讯协议，它具有低开销、低贷款占用等优点，适用于网络资源不丰富场景。MQTT是一个基于客户端-服务器的消息发布/订阅传输协议，基本模型如下：</p>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20230624205744013.png" srcset="/img/loading.gif" lazyload alt="image-20230624205744013"></p>
+<h3 id="QoS（Quality-of-Service-levels）"><a href="#QoS（Quality-of-Service-levels）" class="headerlink" title="QoS（Quality of Service levels）"></a>QoS（Quality of Service levels）</h3><p>MQTT设计了一套保证消息稳定传输的机制，包括消息应答、存储和重传。在这套机制下，提供了三种不同层次QoS：</p>
+<ul>
+<li>QoS0，发送就不管了，最多一次；</li>
+<li>QoS1，发送之后依赖MQTT规范，是否启动重传消息，所以至少一次；</li>
+<li>QoS2，发送之后依赖MQTT消息机制，确保只有一次。</li>
+</ul>
+<blockquote>
+<p>QoS 是消息的发送方（Sender）和接受方（Receiver）之间达成的一个协议：（MQTT不是端到端的通信）</p>
+</blockquote>
+<ul>
+<li>QoS0 代表，Sender 发送的一条消息，Receiver 最多能收到一次，也就是说 Sender 尽力向 Receiver 发送消息，如果发送失败，也就算了；这是完全依赖TCP重传机制，如果网络不好，TCP的重传也不是100%可靠，加上MQTT是Publisher 发出去的消息是依赖代理服务器完成转发，所以消息最多一次。</li>
+<li>QoS1 代表，Sender 发送的一条消息，Receiver 至少能收到一次，也就是说 Sender 向 Receiver 发送消息，如果发送之后没有收到对应的PUBACK，就会继续重试，直到发送者Sender 接收到 Receiver 发送的 PUBACK 为止，因为重传的原因，Receiver 有可能会收到重复的消息；</li>
+<li>QoS2 代表，Sender 发送的一条消息，Receiver 确保能收到而且只收到一次，也就是说 Sender 尽力向 Receiver 发送消息，如果发送失败，会继续重试，直到 Receiver 收到消息为止，同时保证 Receiver 不会因为消息重传而收到重复的消息。</li>
+</ul>
+<h3 id="消息格式"><a href="#消息格式" class="headerlink" title="消息格式"></a>消息格式</h3><ul>
+<li><code>固定头（Fixed header）</code>，存在于所有<code>MQTT</code>数据包中，表示数据包类型及数据包的分组类标识；</li>
+<li><code>可变头（Variable header）</code>，存在于部分<code>MQTT</code>数据包中，数据包类型决定了可变头是否存在及其具体内容；</li>
+<li><code>消息体（Payload）</code>，存在于部分<code>MQTT</code>数据包中，表示客户端收到的具体内容；</li>
+</ul>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20230624211428355.png" srcset="/img/loading.gif" lazyload alt="image-20230624211428355"></p>
+<h4 id="固定报头"><a href="#固定报头" class="headerlink" title="固定报头"></a>固定报头</h4><p>固定报头2~5个字节，所有报文都会包含固定报头。 </p>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20230624211716234.png" srcset="/img/loading.gif" lazyload alt="image-20230624211716234"></p>
+<p>**byte1[7:4]**：MQTT控制报文类型</p>
+<img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20230624211853025.png" srcset="/img/loading.gif" lazyload alt="image-20230624211853025" style="zoom:50%;">
+
+<p>**byte1[3:0]**：MQTT报文类型特定的表示</p>
+<ul>
+<li><strong>DUP</strong>:控制报文的重复分发标志</li>
+<li><strong>QoS</strong>:PUBLISH报文的服务质量等级</li>
+<li>**RETAIN **= PUBLISH报文的保留标志</li>
+</ul>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20230624211946097.png" srcset="/img/loading.gif" lazyload alt="image-20230624211946097"></p>
+<p><strong>byte2</strong>:剩余长度( Remaining Length)表示当前报文剩余部分的字节数，包括可变报头和负载的数据。剩余长度不包括用于编码剩余长度字段本身的字节数。共1~4个字节，每个字节的低7位用于编码数据，最高位表示是否有更多字节。最大允许发送256M控制报文(0xff,0xff,0xff,0x7f)=256M;</p>
+<h4 id="可变报头"><a href="#可变报头" class="headerlink" title="可变报头"></a>可变报头</h4><p>部分MQTT控制报文包含一个可变报头部分。它在固定报头和负载之间。<strong>可变报头的内容根据报文类型的不同而不同</strong>。可变报头的报文标识符(Packetldentifier)字段存在于在多个类型的报文里。</p>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20230624212229945.png" srcset="/img/loading.gif" lazyload alt="image-20230624212229945"></p>
+<h4 id="负载"><a href="#负载" class="headerlink" title="负载"></a>负载</h4><p>部分MQTT控制报文在报文的最后部分包含一个有效载荷。对于PUBLISH来说有效载荷就是应用消息。下面列出了需要有效载荷的控制报文。</p>
+<p><img src="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/image-20230624212309524.png" srcset="/img/loading.gif" lazyload alt="image-20230624212309524"></p>
+<ul>
+<li><code>CONNECT</code>，消息体内容主要是：客户端的ClientID、订阅的Topic、Message以及用户名和密码</li>
+<li><code>SUBSCRIBE</code>，消息体内容是一系列的要订阅的主题以及<code>QoS</code>。</li>
+<li><code>SUBACK</code>，消息体内容是服务器对于<code>SUBSCRIBE</code>所申请的主题及<code>QoS</code>进行确认和回复。</li>
+<li><code>UNSUBSCRIBE</code>，消息体内容是要订阅的主题。</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">#计算机网络</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>网络协议</div>
+      <div>http://example.com/2023/03/19/网络协议/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>bollcode</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年3月19日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/04/13/C++%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="C++基础知识">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">C++基础知识</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/10/18/mit-6.828/" title="MIT-6.828操作系统">
+                        <span class="hidden-mobile">MIT-6.828操作系统</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

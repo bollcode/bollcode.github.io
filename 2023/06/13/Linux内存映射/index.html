@@ -1,0 +1,706 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/basketball.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="bollcode">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Linux-mmap内存映射 内存分配用户态调用malloc()会分配堆内存空间，而实际上则是完成了一次用户态的内存映射，根据分配空间的大小，内存映射对应的系统调用主要有brk()和mmap()(当然我们也可以直接调用mmap()来映射文件)。对小块内存（小于 128K），C 标准库使用 brk() 来分配，也就是通过移动堆顶的位置来分配内存。这些内存释放后并不会立刻归还系统，而是被缓存起来，这样">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux-mmap内存映射">
+<meta property="og:url" content="http://example.com/2023/06/13/Linux%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Linux-mmap内存映射 内存分配用户态调用malloc()会分配堆内存空间，而实际上则是完成了一次用户态的内存映射，根据分配空间的大小，内存映射对应的系统调用主要有brk()和mmap()(当然我们也可以直接调用mmap()来映射文件)。对小块内存（小于 128K），C 标准库使用 brk() 来分配，也就是通过移动堆顶的位置来分配内存。这些内存释放后并不会立刻归还系统，而是被缓存起来，这样">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/linux.svg">
+<meta property="article:published_time" content="2023-06-13T14:16:46.669Z">
+<meta property="article:modified_time" content="2023-06-25T07:51:34.487Z">
+<meta property="article:author" content="bollcode">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/linux.svg">
+  
+  
+  
+  <title>Linux-mmap内存映射 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>bollcode</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Linux-mmap内存映射"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-06-13 22:16" pubdate>
+          2023年6月13日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          81 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Linux-mmap内存映射</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Linux-mmap内存映射"><a href="#Linux-mmap内存映射" class="headerlink" title="Linux-mmap内存映射"></a>Linux-mmap内存映射</h1><p><img src="/2023/06/13/Linux%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84/mmap%E6%96%87%E4%BB%B6%E6%98%A0%E5%B0%84.png" srcset="/img/loading.gif" lazyload alt="mmap文件映射"></p>
+<h2 id="内存分配"><a href="#内存分配" class="headerlink" title="内存分配"></a>内存分配</h2><p>用户态调用<code>malloc()</code>会分配堆内存空间，而实际上则是完成了一次用户态的内存映射，根据分配空间的大小，内存映射对应的系统调用主要有<code>brk()</code>和<code>mmap()</code>(当然我们也可以直接调用<code>mmap()</code>来映射文件)。对小块内存（小于 128K），C 标准库使用 <code>brk()</code> 来分配，也就是通过移动堆顶的位置来分配内存。这些内存释放后并不会立刻归还系统，而是被缓存起来，这样就可以重复使用。而大块内存（大于 128K），则直接使用内存映射 <code>mmap()</code> 来分配，也就是在文件映射段找一块空闲内存分配出去。这两种方式，自然各有优缺点。</p>
+<p>  <code>brk()</code> 方式的缓存，可以减少缺页异常的发生，提高内存访问效率。不过，由于这些内存没有归还系统，在内存工作繁忙时，频繁的内存分配和释放会造成内存碎片。</p>
+<p>   <code>mmap()</code> 方式分配的内存，会在释放时直接归还系统，所以每次 <code>mmap()</code> 都会发生缺页异常。在内存工作繁忙时，频繁的内存分配会导致大量的缺页异常，使内核的管理负担增大。这也是 <code>malloc()</code> 只对大块内存使用 <code>mmap()</code> 的原因。</p>
+<p>下面我们将对mmap的底层实现原理进行探析：</p>
+<h2 id="mmap原理"><a href="#mmap原理" class="headerlink" title="mmap原理"></a>mmap原理</h2><p>mmap一般用于大内存的申请，mmap是直接将虚拟内存空间映射到物理内存空间，mmap可以实现两种功能：</p>
+<ul>
+<li>实现虚拟内存到物理内存的映射</li>
+<li>映射文件到自己的虚拟内存空间，这样就可以不通过read/write等系统调用来操作文件，可以直接在用户态访问。</li>
+</ul>
+<h3 id="mmap系统调用"><a href="#mmap系统调用" class="headerlink" title="mmap系统调用"></a>mmap系统调用</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c">SYSCALL_DEFINE6(mmap, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>, addr, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>, len,<br>        <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>, prot, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>, flags,<br>        <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>, fd, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>, off)<br>&#123;<br>    <span class="hljs-type">long</span> error;<br>    error = -EINVAL;<br>    <span class="hljs-keyword">if</span> (off &amp; ~PAGE_MASK)<br>        <span class="hljs-keyword">goto</span> out;<br>    error = ksys_mmap_pgoff(addr, len, prot, flags, fd, off &gt;&gt; PAGE_SHIFT);<br>out:<br>    <span class="hljs-keyword">return</span> error;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里主要调用<code>ksys_mmap_pgoff()</code>函数，这里逻辑如下：</p>
+<ul>
+<li>判断类型是否为匿名映射，如果不是则为文件映射，调用<code>fget()</code>获取文件描述符</li>
+<li>如果是匿名映射，判断是否为大页，如果是则进行对齐处理并调用<code>hugetlb_file_setup()</code>获取文件描述符</li>
+<li>调用<code>vm_mmap_pgoff()</code>函数找寻可以映射的区域并建立映射</li>
+</ul>
+<p><code>vm_mmap_pgoff()</code>函数调用<code>do_mmap_pgoff()</code>，实际调用<code>do_mmap()</code>函数，我们直接看这个<code>do_mmap()</code>函数：这个函数主要调用<code>get_unmapped_area</code>和<code>mmap_region</code>这两个函数，一个负责申请大内存，一个负责映射关系。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> <span class="hljs-title function_">do_mmap</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> file *file, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> addr,</span><br><span class="hljs-params">            <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> len, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> prot,</span><br><span class="hljs-params">            <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags, <span class="hljs-type">vm_flags_t</span> vm_flags,</span><br><span class="hljs-params">            <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> pgoff, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> *populate,</span><br><span class="hljs-params">            <span class="hljs-keyword">struct</span> list_head *uf)</span><br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">mm_struct</span> *<span class="hljs-title">mm</span> =</span> current-&gt;mm;<br>    <span class="hljs-type">int</span> pkey = <span class="hljs-number">0</span>;<br>    *populate = <span class="hljs-number">0</span>;<br>......<br>    <span class="hljs-comment">/* Obtain the address to map to. we verify (or select) it and ensure</span><br><span class="hljs-comment">     * that it represents a valid section of the address space.</span><br><span class="hljs-comment">     */</span><br>    addr = get_unmapped_area(file, addr, len, pgoff, flags);<br>......<br>    addr = mmap_region(file, addr, len, vm_flags, pgoff, uf);<br>    <span class="hljs-keyword">if</span> (!IS_ERR_VALUE(addr) &amp;&amp;<br>        ((vm_flags &amp; VM_LOCKED) ||<br>         (flags &amp; (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))<br>        *populate = len;<br>    <span class="hljs-keyword">return</span> addr;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>下面我们先看<code>get_unmapped_area()</code>函数，</p>
+<ul>
+<li>如果是匿名映射，则调用<code>get_umapped_area</code>函数指针，这个函数其实是 <code>arch_get_unmapped_area()</code>。它会调用 <code>find_vma_prev()</code>，在表示虚拟内存区域的 <code>vm_area_struct</code> 红黑树上找到相应的位置。之所以叫 <code>prev</code>，是说这个时候虚拟内存区域还没有建立，找到前一个 <code>vm_area_struct</code>。</li>
+<li>如果是映射到一个文件，在 Linux 里面每个打开的文件都有一个 <code>struct file</code> 结构，里面有一个 <code>file_operations</code>用来表示和这个文件相关的操作。如果是我们熟知的 <code>ext4</code> 文件系统，调用的也是<code>get_unmapped_area</code> 函数指针。</li>
+</ul>
+<p>逻辑如图：</p>
+<p><img src="/2023/06/13/Linux%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84/1075436-20190524140149261-1192606308.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">unsigned</span> <span class="hljs-type">long</span><br><span class="hljs-title function_">get_unmapped_area</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> file *file, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> addr, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> len,</span><br><span class="hljs-params">        <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> pgoff, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags)</span><br>&#123;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-title function_">long</span> <span class="hljs-params">(*get_area)</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> file *, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>,</span><br><span class="hljs-params">                  <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)</span>;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> error = arch_mmap_check(addr, len, flags);<br>    <span class="hljs-keyword">if</span> (error)<br>        <span class="hljs-keyword">return</span> error;<br>    <span class="hljs-comment">/* Careful about overflows.. */</span><br>    <span class="hljs-keyword">if</span> (len &gt; TASK_SIZE)<br>        <span class="hljs-keyword">return</span> -ENOMEM;<br>    get_area = current-&gt;mm-&gt;get_unmapped_area;<br>    <span class="hljs-keyword">if</span> (file) &#123;<br>        <span class="hljs-keyword">if</span> (file-&gt;f_op-&gt;get_unmapped_area)<br>            get_area = file-&gt;f_op-&gt;get_unmapped_area;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (flags &amp; MAP_SHARED) &#123;<br>        <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * mmap_region() will call shmem_zero_setup() to create a file,</span><br><span class="hljs-comment">         * so use shmem&#x27;s get_unmapped_area in case it can be huge.</span><br><span class="hljs-comment">         * do_mmap_pgoff() will clear pgoff, so match alignment.</span><br><span class="hljs-comment">         */</span><br>        pgoff = <span class="hljs-number">0</span>;<br>        get_area = shmem_get_unmapped_area;<br>    &#125;<br>    addr = get_area(file, addr, len, pgoff, flags);<br>    <span class="hljs-keyword">if</span> (IS_ERR_VALUE(addr))<br>        <span class="hljs-keyword">return</span> addr;<br>    <span class="hljs-keyword">if</span> (addr &gt; TASK_SIZE - len)<br>        <span class="hljs-keyword">return</span> -ENOMEM;<br>    <span class="hljs-keyword">if</span> (offset_in_page(addr))<br>        <span class="hljs-keyword">return</span> -EINVAL;<br>    error = security_mmap_addr(addr);<br>    <span class="hljs-keyword">return</span> error ? error : addr;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>mmap_region()</code>首先会再次检测地址空间是否满足要求，然后清除旧的映射，校验内存的可用性，在一切均满足的情况下调用<code>vma_link()</code>将新创建的<code>vm_area_struct</code>结构挂在<code>mm_struct</code>内的红黑树上。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> <span class="hljs-title function_">mmap_region</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> file *file, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> addr,</span><br><span class="hljs-params">        <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> len, <span class="hljs-type">vm_flags_t</span> vm_flags, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> pgoff,</span><br><span class="hljs-params">        <span class="hljs-keyword">struct</span> list_head *uf)</span><br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">mm_struct</span> *<span class="hljs-title">mm</span> =</span> current-&gt;mm;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">vm_area_struct</span> *<span class="hljs-title">vma</span>, *<span class="hljs-title">prev</span>;</span><br>    <span class="hljs-type">int</span> error;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">rb_node</span> **<span class="hljs-title">rb_link</span>, *<span class="hljs-title">rb_parent</span>;</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> charged = <span class="hljs-number">0</span>;<br>......<br>    vma_link(mm, vma, prev, rb_link, rb_parent);<br>    <span class="hljs-comment">/* Once vma denies write, undo our temporary denial count */</span><br>    <span class="hljs-keyword">if</span> (file) &#123;<br>        <span class="hljs-keyword">if</span> (vm_flags &amp; VM_SHARED)<br>            mapping_unmap_writable(file-&gt;f_mapping);<br>        <span class="hljs-keyword">if</span> (vm_flags &amp; VM_DENYWRITE)<br>            allow_write_access(file);<br>    &#125;<br>    file = vma-&gt;vm_file;<br>......<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>最后调用到<code>__vma_link_file()</code>会对文件映射进行处理，在file结构体中成员f_mapping指向address_space结构体，该结构体中存储红黑树i_mmap挂载vm_area_struct。也就是说这个进程的VMA和这个file已经绑定在一起了，完成了逻辑上的映射关系了，也就是虚拟地址和file的映射，但是并没有物理地址的映射。</p>
+<ul>
+<li>创建了一个<code>vm_area_struct</code>，然后将其挂在了<code>mm_struct</code>红黑树中以及<code>address_space</code>中的红黑树中。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span> __vma_link_file(<span class="hljs-keyword">struct</span> vm_area_struct *vma)<br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> *<span class="hljs-title">file</span>;</span><br>    file = vma-&gt;vm_file;<br>    <span class="hljs-keyword">if</span> (file) &#123;<br>        <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">address_space</span> *<span class="hljs-title">mapping</span> =</span> file-&gt;f_mapping;<br>        <span class="hljs-keyword">if</span> (vma-&gt;vm_flags &amp; VM_DENYWRITE)<br>            <span class="hljs-type">atomic_dec</span>(&amp;file_inode(file)-&gt;i_writecount);<br>        <span class="hljs-keyword">if</span> (vma-&gt;vm_flags &amp; VM_SHARED)<br>            <span class="hljs-type">atomic_inc</span>(&amp;mapping-&gt;i_mmap_writable);<br>        flush_dcache_mmap_lock(mapping);<br>        vma_interval_tree_insert(vma, &amp;mapping-&gt;i_mmap);<br>        flush_dcache_mmap_unlock(mapping);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>至此，我们完成了用户态内存的映射，但是此处仅在虚拟内存中建立了新的区域，尚未真正访问物理内存。物理内存的访问只有在调度到该进程时才会真正分配，即发生缺页异常时分配。</p>
+<h2 id="用户态缺页异常"><a href="#用户态缺页异常" class="headerlink" title="用户态缺页异常"></a>用户态缺页异常</h2><p>一旦开始访问虚拟内存的某个地址，如果我们发现，并没有对应的物理页，那就出发缺页中断，调用<code>do_page_fault</code></p>
+<ul>
+<li>如果是在内核态发生缺页中断，那么就调用的是``vmalloc_fault`</li>
+<li>如果是用户态，就先通过<code>find_vam</code>找到对应的<code>vm_area_struct</code></li>
+<li>然后调用<code>handle_mm_fault</code>来进行申请内存并建立映射关系</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * This routine handles page faults.  It determines the address,</span><br><span class="hljs-comment"> * and the problem, and then passes it off to one of the appropriate</span><br><span class="hljs-comment"> * routines.</span><br><span class="hljs-comment"> */</span><br>asmlinkage <span class="hljs-type">void</span> __kprobes <span class="hljs-title function_">do_page_fault</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> pt_regs *regs,</span><br><span class="hljs-params">                    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> error_code,</span><br><span class="hljs-params">                    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> address)</span><br>&#123;<br>......<br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     * We fault-in kernel-space virtual memory on-demand. The</span><br><span class="hljs-comment">     * &#x27;reference&#x27; page table is init_mm.pgd.</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * NOTE! We MUST NOT take any locks for this case. We may</span><br><span class="hljs-comment">     * be in an interrupt or a critical region, and should</span><br><span class="hljs-comment">     * only copy the information from the master page table,</span><br><span class="hljs-comment">     * nothing more.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">if</span> (unlikely(fault_in_kernel_space(address))) &#123;<br>        <span class="hljs-keyword">if</span> (vmalloc_fault(address) &gt;= <span class="hljs-number">0</span>)<br>            <span class="hljs-keyword">return</span>;<br>        <span class="hljs-keyword">if</span> (notify_page_fault(regs, vec))<br>            <span class="hljs-keyword">return</span>;<br>        bad_area_nosemaphore(regs, error_code, address);<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>......<br>    vma = find_vma(mm, address);<br>......<br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     * If for any reason at all we couldn&#x27;t handle the fault,</span><br><span class="hljs-comment">     * make sure we exit gracefully rather than endlessly redo</span><br><span class="hljs-comment">     * the fault.</span><br><span class="hljs-comment">     */</span><br>    fault = handle_mm_fault(vma, address, flags);<br>......<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">vm_fault_t</span> <span class="hljs-title function_">handle_mm_fault</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> vm_area_struct *vma, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> address,</span><br><span class="hljs-params">        <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> flags)</span><br>&#123;<br>......<br>    <span class="hljs-keyword">if</span> (unlikely(is_vm_hugetlb_page(vma)))<br>        ret = hugetlb_fault(vma-&gt;vm_mm, vma, address, flags);<br>    <span class="hljs-keyword">else</span><br>        ret = __handle_mm_fault(vma, address, flags);<br>......<br>    <span class="hljs-keyword">return</span> ret;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>__handle_mm_fault()</code>完成实际上的映射操作。这里涉及到了由<code>pgd, p4g, pud, pmd, pte</code>组成的五级页表，页表索引填充完后调用<code>handle_pte_fault()</code>创建页表项。</p>
+<p><code>handle_pte_fault</code>主要处理三种情况：</p>
+<ul>
+<li>页表项从未出现过，即新映射页表项<ul>
+<li>匿名页映射，则映射到物理内存页，调用<code>do_anonymous_page()</code></li>
+<li>文件映射，调用<code>do_fault()</code></li>
+</ul>
+</li>
+<li>页表项曾出现过，则为从物理内存换出的页，调用<code>do_swap_page()</code>换回来</li>
+</ul>
+<p><img src="/2023/06/13/Linux%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84/1075436-20190527174134584-2009167765.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>匿名页调用</p>
+<p><img src="/2023/06/13/Linux%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84/1075436-20190527174244200-2102497879.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">vm_fault_t</span> <span class="hljs-title function_">handle_pte_fault</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> vm_fault *vmf)</span><br>&#123;<br>    <span class="hljs-type">pte_t</span> entry;<br>......<br>        <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * A regular pmd is established and it can&#x27;t morph into a huge</span><br><span class="hljs-comment">         * pmd from under us anymore at this point because we hold the</span><br><span class="hljs-comment">         * mmap_sem read mode and khugepaged takes it in write mode.</span><br><span class="hljs-comment">         * So now it&#x27;s safe to run pte_offset_map().</span><br><span class="hljs-comment">         */</span><br>        vmf-&gt;pte = pte_offset_map(vmf-&gt;pmd, vmf-&gt;address);<br>        vmf-&gt;orig_pte = *vmf-&gt;pte;<br>......<br>    <span class="hljs-keyword">if</span> (!vmf-&gt;pte) &#123;<br>        <span class="hljs-keyword">if</span> (vma_is_anonymous(vmf-&gt;vma))<br>            <span class="hljs-keyword">return</span> do_anonymous_page(vmf);<br>        <span class="hljs-keyword">else</span><br>            <span class="hljs-keyword">return</span> do_fault(vmf);<br>    &#125;<br>    <span class="hljs-keyword">if</span> (!pte_present(vmf-&gt;orig_pte))<br>        <span class="hljs-keyword">return</span> do_swap_page(vmf);<br>......<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="文件映射"><a href="#文件映射" class="headerlink" title="文件映射"></a>文件映射</h3><p>我们上面分析了，如果是文件映射，那么就会调用<code>do_fault()</code>函数，映射文件<code>do_fault()</code>函数调用了<code>fault</code>函数，该函数实际会根据不同的文件系统调用不同的函数。如<code>ext4</code>文件系统中<code>vm_ops</code>指向<code>ext4_file_vm_ops</code>，实际调用<code>ext4_filemap_fault()</code>函数，该函数会调用<code>filemap_fault()</code>完成实际的文件映射操作。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">vm_fault_t</span> <span class="hljs-title function_">do_fault</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> vm_fault *vmf)</span><br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">vm_area_struct</span> *<span class="hljs-title">vma</span> =</span> vmf-&gt;vma;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">mm_struct</span> *<span class="hljs-title">vm_mm</span> =</span> vma-&gt;vm_mm;<br>    <span class="hljs-type">vm_fault_t</span> ret;<br><br>    <span class="hljs-keyword">if</span> (!vma-&gt;vm_ops-&gt;fault) &#123;  <span class="hljs-comment">// 这里调用了指定的文件系统的fault函数 ，这里的赋值在前面的mmap_region实现的</span><br>......<br>&#125;<br><span class="hljs-type">vm_fault_t</span> <span class="hljs-title function_">ext4_filemap_fault</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> vm_fault *vmf)</span><br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">inode</span> *<span class="hljs-title">inode</span> =</span> file_inode(vmf-&gt;vma-&gt;vm_file);<br>......<br>    ret = filemap_fault(vmf); <br>......<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>filemap_fault</code>会先调用<code>find_get_page</code>去寻址那个页，如果在缓存中找到了则调用<code>do_async_mmap_readahead()</code>，预读一些数据到内存里面，否则调用<code>pagecache_get_page()</code>分配一个缓存页，将该页加入LRU表中，并在<code>address_space</code>中调用</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">vm_fault_t</span> <span class="hljs-title function_">filemap_fault</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> vm_fault *vmf)</span><br>&#123;<br>    <span class="hljs-type">int</span> error;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> *<span class="hljs-title">file</span> =</span> vmf-&gt;vma-&gt;vm_file;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> *<span class="hljs-title">fpin</span> =</span> <span class="hljs-literal">NULL</span>;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">address_space</span> *<span class="hljs-title">mapping</span> =</span> file-&gt;f_mapping;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file_ra_state</span> *<span class="hljs-title">ra</span> =</span> &amp;file-&gt;f_ra;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">inode</span> *<span class="hljs-title">inode</span> =</span> mapping-&gt;host;<br>......<br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     * Do we have something in the page cache already?</span><br><span class="hljs-comment">     */</span><br>    page = find_get_page(mapping, offset);   <span class="hljs-comment">// 根据这个mapping和offset我们就能够在address_space中找到对应的page</span><br>    <span class="hljs-keyword">if</span> (likely(page) &amp;&amp; !(vmf-&gt;flags &amp; FAULT_FLAG_TRIED)) &#123;<br>        <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * We found the page, so try async readahead before</span><br><span class="hljs-comment">         * waiting for the lock.</span><br><span class="hljs-comment">         */</span><br>        fpin = do_async_mmap_readahead(vmf, page);<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!page) &#123;<br>        <span class="hljs-comment">/* No page in the page cache at all */</span><br>......       <br>&#125;<br>    <br><span class="hljs-keyword">struct</span> page *pagecache_get_page(<span class="hljs-keyword">struct</span> address_space *mapping, <span class="hljs-type">pgoff_t</span> offset,<br>    <span class="hljs-type">int</span> fgp_flags, <span class="hljs-type">gfp_t</span> gfp_mask)<br>&#123;<br>......<br>        page = __page_cache_alloc(gfp_mask);<br>......<br>        err = add_to_page_cache_lru(page, mapping, offset, gfp_mask);<br>......<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>对于内存中不存在的，就是利用<code>address_space</code>中的<code>address_space_operations </code>的<code>readpage </code>函数将文件内存读取到内存中，并返回这个新申请的page。</p>
+<p>这样我们就完成了进程的虚拟地址和文件缓存的映射关系了，当访问这个虚拟地址时，就是相当于操作了文件了，因为他们都映射着同一个物理页，利用这一点我们可以实现进程间共享内存的通信。</p>
+<h3 id="swap页面"><a href="#swap页面" class="headerlink" title="swap页面"></a>swap页面</h3><p>前文提到了我们会通过主动回收或者被动回收的方式将物理内存已映射的页面回收至硬盘中，当数据再次访问时，我们又需要通过<code>do_swap_page()</code>将其从硬盘中读回来。<code>do_swap_page()</code> 函数逻辑流程如下：查找 <code>swap</code> 文件有没有缓存页。如果没有，就调用 <code>swapin_readahead()</code>将 <code>swap</code> 文件读到内存中来形成内存页，并通过 <code>mk_pte()</code> 生成页表项。<code>set_pte_at</code> 将页表项插入页表，<code>swap_free</code> 将 <code>swap</code> 文件清理。因为重新加载回内存了，不再需要 <code>swap</code> 文件了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">vm_fault_t</span> <span class="hljs-title function_">do_swap_page</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> vm_fault *vmf)</span><br>&#123;<br>......<br>    entry = pte_to_swp_entry(vmf-&gt;orig_pte);<br>......<br>    page = lookup_swap_cache(entry, vma, vmf-&gt;address);<br>    swapcache = page;<br>    <span class="hljs-keyword">if</span> (!page) &#123;<br>        <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">swap_info_struct</span> *<span class="hljs-title">si</span> =</span> swp_swap_info(entry);<br>        <span class="hljs-keyword">if</span> (si-&gt;flags &amp; SWP_SYNCHRONOUS_IO &amp;&amp;<br>                __swap_count(si, entry) == <span class="hljs-number">1</span>) &#123;<br>            <span class="hljs-comment">/* skip swapcache */</span><br>            page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,<br>                            vmf-&gt;address);<br>......<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,<br>                        vmf);<br>            swapcache = page;<br>        &#125;<br>......<br>    pte = mk_pte(page, vma-&gt;vm_page_prot);<br>......<br>    set_pte_at(vma-&gt;vm_mm, vmf-&gt;address, vmf-&gt;pte, pte);<br>    arch_do_swap_page(vma-&gt;vm_mm, vma, vmf-&gt;address, pte, vmf-&gt;orig_pte);<br>    vmf-&gt;orig_pte = pte;<br>......<br>    swap_free(entry);<br>......<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Linux/">#Linux</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Linux-mmap内存映射</div>
+      <div>http://example.com/2023/06/13/Linux内存映射/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>bollcode</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年6月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/06/13/Linux%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96/" title="linux内核启动与初始化">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">linux内核启动与初始化</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/06/13/Linux%E4%B8%8B%E7%9A%84IO/" title="Linux的I/O与驱动">
+                        <span class="hidden-mobile">Linux的I/O与驱动</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

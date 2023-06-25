@@ -1,0 +1,726 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/basketball.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="bollcode">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="进程调度一个cpu在同一个时刻只能运行一个进程，如果内存中存在多个进程，那么cpu以怎样的顺序来运行这些进程呢？这个工作是由操作系统控制的，操作系统应采用怎么策略来调度这些进程在cpu上执行呢？下面我们将介绍几个进程调度的算法。 进程分类linux将进程分为实时进程和非实时进程，其中非实时进程进一步划分为交互式进程和批处理进程  实时进程：实时进程是指进程响应时间尽可能的短，以达到实时的效果，可以">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux进程调度">
+<meta property="og:url" content="http://example.com/2023/06/13/%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="进程调度一个cpu在同一个时刻只能运行一个进程，如果内存中存在多个进程，那么cpu以怎样的顺序来运行这些进程呢？这个工作是由操作系统控制的，操作系统应采用怎么策略来调度这些进程在cpu上执行呢？下面我们将介绍几个进程调度的算法。 进程分类linux将进程分为实时进程和非实时进程，其中非实时进程进一步划分为交互式进程和批处理进程  实时进程：实时进程是指进程响应时间尽可能的短，以达到实时的效果，可以">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/linux.svg">
+<meta property="article:published_time" content="2023-06-13T14:20:09.131Z">
+<meta property="article:modified_time" content="2023-06-25T07:52:59.287Z">
+<meta property="article:author" content="bollcode">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/linux.svg">
+  
+  
+  
+  <title>linux进程调度 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>bollcode</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="linux进程调度"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-06-13 22:20" pubdate>
+          2023年6月13日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          32 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">linux进程调度</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="进程调度"><a href="#进程调度" class="headerlink" title="进程调度"></a>进程调度</h1><p>一个cpu在同一个时刻只能运行一个进程，如果内存中存在多个进程，那么cpu以怎样的顺序来运行这些进程呢？这个工作是由操作系统控制的，操作系统应采用怎么策略来调度这些进程在cpu上执行呢？下面我们将介绍几个进程调度的算法。</p>
+<h2 id="进程分类"><a href="#进程分类" class="headerlink" title="进程分类"></a>进程分类</h2><p>linux将进程分为实时进程和非实时进程，其中非实时进程进一步划分为交互式进程和批处理进程</p>
+<ul>
+<li><strong>实时进程</strong>：实时进程是指进程响应时间尽可能的短，以达到实时的效果，可以根据优先级抢占或阻塞。典型的实时进程有音视频控制，自动设备实时控制等。</li>
+<li><strong>非实时进程</strong>：<ul>
+<li><strong>交互式进程</strong>：主要与用户进行交互，等待用户的键盘或鼠标输入。典型的交互式进程是shell、文本编辑和图形应用程序。</li>
+<li><strong>批处理进程</strong>：运行在后台，不和用户交互。由于不需要与用户实时交互响应，所以经常受到调度程序的慢待。典型的批处理进程是编译程序、数据库搜索等。</li>
+</ul>
+</li>
+</ul>
+<h2 id="进程调度算法"><a href="#进程调度算法" class="headerlink" title="进程调度算法"></a>进程调度算法</h2><p><a target="_blank" rel="noopener" href="https://www.xiaolincoding.com/os/4_process/process_base.html#%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95">【参考博文】</a></p>
+<h3 id="FIFO-先来先服务算法"><a href="#FIFO-先来先服务算法" class="headerlink" title="FIFO 先来先服务算法"></a>FIFO 先来先服务算法</h3><p>每次从就绪队列中找出最先进入队列的进程然后来运行，知道这个进程运行完之后才会选择下一个进程运行，但是这个会造成一个单个进程长时间占用cpu，导致其他进程要等待较长时间。</p>
+<p><img src="/2023/06/13/%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/24-%E5%85%88%E6%9D%A5%E5%85%88%E6%9C%8D%E5%8A%A1.jpg" srcset="/img/loading.gif" lazyload alt="FCFS 调度算法"></p>
+<h3 id="最短作业优先算法"><a href="#最短作业优先算法" class="headerlink" title="最短作业优先算法"></a>最短作业优先算法</h3><p>他会选择运行时间较短的进程来运行，这会导致运行时间较长的进程无法获得cpu资源。而且我们也很难计算出一个进程到底会运行多长时间。</p>
+<p><img src="/2023/06/13/%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/25-%E6%9C%80%E7%9F%AD%E4%BD%9C%E4%B8%9A%E4%BC%98%E5%85%88%E7%AE%97%E6%B3%95.jpg" srcset="/img/loading.gif" lazyload alt="SJF 调度算法"></p>
+<h3 id="RR-时间片轮转算法"><a href="#RR-时间片轮转算法" class="headerlink" title="RR 时间片轮转算法"></a>RR 时间片轮转算法</h3><p>RR – round robin 时间片轮转算法，这个算法就是操作系统为每个进程分配一个时间片，当正在运行的程序时间片使用完后，就会发生重新调度，停止此时正在运行的进程，并将进程加入到就绪队列中，选择另一个就绪进程运行，这个选择算法可以是FIFO。</p>
+<p>时间片轮转带来的弊端就是时间片的大小设置问题，如何设置的小，导致需要频繁切换进程，并且一个运行时间短的进程可能需要轮转多次，如果设置较大，就会导致对短作业进程响应时间变长。</p>
+<h3 id="HPF-最高优先级调度算法"><a href="#HPF-最高优先级调度算法" class="headerlink" title="HPF 最高优先级调度算法"></a>HPF 最高优先级调度算法</h3><p>每个进程的调度是有优先级的，通过为每个进程设置不同的调度优先级，当从就绪队列中寻找进程时，会选择出优先级最高的进程进行执行。这个优先级可以在创建进程的时候就将其设置好，也可以在运行期间更改其优先级。</p>
+<h3 id="多级反馈队列算法"><a href="#多级反馈队列算法" class="headerlink" title="多级反馈队列算法"></a>多级反馈队列算法</h3><p>这个算法是结合时间片轮转算法和最高优先级算法实现的。</p>
+<ul>
+<li>多级：就是维护了多个就绪队列，每个队列的优先级从高到低并且时间片是从小到大</li>
+<li>反馈：如果有新的进程加入到了比自己优先级高的队列中，那么就会停止现在的进行，去执行优先级高的进程。</li>
+</ul>
+<p><img src="/2023/06/13/%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/28-%E5%A4%9A%E7%BA%A7%E9%98%9F%E5%88%97.jpg" srcset="/img/loading.gif" lazyload alt="多级反馈队列"></p>
+<p>这样的好处时，当来了一个新的进程时，能够第一时间处理它，并且因为高优先级队列时间片短，如果是一个短时间任务，那么就可以提前将其处理掉，如果是一个长时间任务，就会逐级放到低优先级的队列中，并逐步增大他的时间片就可以保证长时间任务有较长的时间运行。比较好的兼顾了长短时间进程。</p>
+<h3 id="CFS-完全公平调度算法"><a href="#CFS-完全公平调度算法" class="headerlink" title="CFS 完全公平调度算法"></a>CFS 完全公平调度算法</h3><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/673c9e4817a8">https://www.jianshu.com/p/673c9e4817a8</a></p>
+<p><a target="_blank" rel="noopener" href="https://code84.com/735504.html">https://code84.com/735504.html</a></p>
+<h2 id="进程调度过程"><a href="#进程调度过程" class="headerlink" title="进程调度过程"></a>进程调度过程</h2><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/6as3ZB5s-H9jKtxAorGIfg">https://mp.weixin.qq.com/s/6as3ZB5s-H9jKtxAorGIfg</a></p>
+<p><a target="_blank" rel="noopener" href="https://ty-chen.github.io/linux-kernel-schedule/">https://ty-chen.github.io/linux-kernel-schedule/</a></p>
+<p>linux的调度策略主要分为实时进程和普通进程。实时进程要求尽快返回结果，而普通进程没那么高的要求。在task_struct中有一个<code>policy</code>变量表示调度策略，调度优先级有<code>prio, static_prio, normal_prio, rt_priority</code>几个,y优先级其实就是一个数值，对于实时进程，优先级是0-99，对于普通进程，优先级是100-139，优先级越小级别越高。</p>
+<p>对于实时进程采用的调度策略为FIFO和RR，这个和policy有关，对于普通进程采用的是CFS调度策略；</p>
+<h3 id="什么是CFS策略："><a href="#什么是CFS策略：" class="headerlink" title="什么是CFS策略："></a>什么是CFS策略：</h3><p>CFS是为每一个进程安排了一个虚拟进程时间vruntime，如果一个任务在运行，那么随着一个个时钟的tick的到来，就会改变这个任务的vruntime值，然后判断是否可以发生调度操作。CFS策略的运行队列是一个根据vruntime生产的红黑树，vruntime越小，就会优先获得执行权。vruntime的计算和进程的权重有关，并且优先级高的进程会获得更多的执行时间，这个权重由一个nice值来决定的，nice值的范围是[-20,20]</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><br><span class="hljs-type">const</span> <span class="hljs-type">int</span> sched_prio_to_weight[<span class="hljs-number">40</span>] = &#123;<br> <span class="hljs-comment">/* -20 */</span>     <span class="hljs-number">88761</span>,     <span class="hljs-number">71755</span>,     <span class="hljs-number">56483</span>,     <span class="hljs-number">46273</span>,     <span class="hljs-number">36291</span>,<br> <span class="hljs-comment">/* -15 */</span>     <span class="hljs-number">29154</span>,     <span class="hljs-number">23254</span>,     <span class="hljs-number">18705</span>,     <span class="hljs-number">14949</span>,     <span class="hljs-number">11916</span>,<br> <span class="hljs-comment">/* -10 */</span>      <span class="hljs-number">9548</span>,      <span class="hljs-number">7620</span>,      <span class="hljs-number">6100</span>,      <span class="hljs-number">4904</span>,      <span class="hljs-number">3906</span>,<br> <span class="hljs-comment">/*  -5 */</span>      <span class="hljs-number">3121</span>,      <span class="hljs-number">2501</span>,      <span class="hljs-number">1991</span>,      <span class="hljs-number">1586</span>,      <span class="hljs-number">1277</span>,<br> <span class="hljs-comment">/*   0 */</span>      <span class="hljs-number">1024</span>,       <span class="hljs-number">820</span>,       <span class="hljs-number">655</span>,       <span class="hljs-number">526</span>,       <span class="hljs-number">423</span>,<br> <span class="hljs-comment">/*   5 */</span>       <span class="hljs-number">335</span>,       <span class="hljs-number">272</span>,       <span class="hljs-number">215</span>,       <span class="hljs-number">172</span>,       <span class="hljs-number">137</span>,<br> <span class="hljs-comment">/*  10 */</span>       <span class="hljs-number">110</span>,        <span class="hljs-number">87</span>,        <span class="hljs-number">70</span>,        <span class="hljs-number">56</span>,        <span class="hljs-number">45</span>,<br> <span class="hljs-comment">/*  15 */</span>        <span class="hljs-number">36</span>,        <span class="hljs-number">29</span>,        <span class="hljs-number">23</span>,        <span class="hljs-number">18</span>,        <span class="hljs-number">15</span>,<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><p>进程的运行时间：</p>
+<p>分配给进程的时间 = 调度周期*进程权重/(所有进程权重之和) </p>
+</li>
+<li><p>vruntime计算：NICE_0_LOAD 是nice为0的值，对于不同的nice值，vruntime是不同的</p>
+<p> vruntime = 进程的运行时间 * NICE_0_LOAD/ 进程的权重  // vruntime是进程的运行时间进行加权运算得到的。权重越大，增长的越慢，这样就会使得权重较大的进程获得更多的执行时间，这样就保证了相对的公平性。</p>
+<p> vruntime = 调度周期*NICE_0_LOAD/(所有进程权重之和)</p>
+</li>
+</ul>
+<p>CFS的思想就是让每个进程的vruntime相互追赶，vruntime的增长速度随着权重的增大而减慢，这样就能够使得权重较大的进程获得更多的执行时间，每次都是从运行队列中选择一个vruntime最小的进程来执行。CFS中的红黑树key是vruntime-min_vruntime，而不是这个vruntime，这是为了防止溢出的。</p>
+<h3 id="调度器、调度实体、调度队列等"><a href="#调度器、调度实体、调度队列等" class="headerlink" title="调度器、调度实体、调度队列等"></a>调度器、调度实体、调度队列等</h3><blockquote>
+<p>调度器：sched_class</p>
+</blockquote>
+<p>和调度器相关的是一个sche_class类，也叫调度类，它有几个实现，这个调度类就是去指向调度的，对于不同的调度策略有着不同的调度类实例。</p>
+<p><img src="/2023/06/13/%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/image-20230506205938924.png" srcset="/img/loading.gif" lazyload alt="image-20230506205938924"></p>
+<ul>
+<li><code>stop_sched_class</code> 优先级最高的任务会使用这种策略，会中断所有其他线程，且不会被其他任务打断；</li>
+<li><code>dl_sched_class</code> 就对应上面的 <code>deadline</code> 调度策略；</li>
+<li><code>rt_sched_class</code> 就对应 <code>RR</code> 算法或者 <code>FIFO</code> 算法的调度策略，具体调度策略由进程的 <code>task_struct-&gt;policy</code> 指定；</li>
+<li><code>fair_sched_class</code> 就是普通进程的调度策略；</li>
+<li><code>idle_sched_class</code> 就是空闲进程的调度策略。</li>
+</ul>
+<p>我们已经有了调度类了，那么要调度的实体是什么呢？是task_struct吗？是task_struct中的一个sched_entity，它包含了vruntime和权重等。</p>
+<blockquote>
+<p>调度实体：sched_entity</p>
+<ul>
+<li>包含了这个vruntime和权重等信息</li>
+</ul>
+</blockquote>
+<ul>
+<li><code>struct sched_entity se</code>：普通任务调度实体</li>
+<li><code>struct sched_rt_entity rt</code>：实时调度实体</li>
+<li><code>struct sched_dl_entity dl</code>：<code>DEADLINE</code>调度实体</li>
+</ul>
+<blockquote>
+<p>运行队列：</p>
+</blockquote>
+<p><img src="/2023/06/13/%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/image-20230506210240325.png" srcset="/img/loading.gif" lazyload alt="image-20230506210240325"></p>
+<p>对于普通进程来说，每次都是从cfs_rq中选择一个vruntime较小的一个调度实体，然后选择对应的进程进行运行。</p>
+<blockquote>
+<p>总结：</p>
+</blockquote>
+<ul>
+<li>每个CPU都有一个<code>struct rq</code>结构体，里面会有着<code>cfs_rq</code>, <code>rt_rq</code>等一系列队列</li>
+<li>每个队列由一个红黑树组织，红黑树里每一个节点为一个任务实体<code>sched_entity</code></li>
+<li>每一个任务实体<code>sched_entity</code>对应于一个任务<code>task_struct</code></li>
+<li>在<code>task_struct</code>中对应的<code>sched_class</code>会根据不同策略申明不同的对应处理函数，处理实际的调度工作</li>
+</ul>
+<p><img src="/2023/06/13/%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/c14aceec16294b949ed1521820f8c348.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h3 id="CFS调度过程"><a href="#CFS调度过程" class="headerlink" title="CFS调度过程"></a>CFS调度过程</h3><p>CFS调度器，当一个进程的状态是可运行状态时，使用<code>enqueue_task_fair</code>函数将任务入队到CFS队列，当一个进程的状态是其他状态时，使用<code>dequeue_task_fair</code>函数将任务从CFS队列中出队操作。</p>
+<p>其实就是将task_struct对应的sched_entiry插入和删除在红黑树中。</p>
+<blockquote>
+<p>任务调度：</p>
+<ul>
+<li>_schedule()函数</li>
+<li>pick_next_task()函数</li>
+<li>context_switch()函数</li>
+</ul>
+</blockquote>
+<p>当发生任务切换的时候，就会调用<code>_schedule()</code>函数，然后选择出对应的调度器，比如cfs调度器，调用<code>pick_next_task_fair()</code>函数选择下一个要运行的进程，然后再调用<code>context_switch()</code>函数切换进程环境。</p>
+<p>对于这个进程切换时进程的上下文环境如何保存和恢复的我已经在中断那一篇讲过了。</p>
+<blockquote>
+<p>CFS的tick</p>
+</blockquote>
+<p>在每次时钟中断的时候，都会触发一个scheduler_tick()函数，这个函数会获取当前CPU的rq运行队列，并且获得当前的任务curr，然后调用该任务的sched_class类的task_tick函数，对于CFS调度器来说，他会更新这个任务的vruntime、运行时间等属性，然后再判断是不是可以发生调度了。如果此时vruntime不是运行队列中最小的了，那么就会将vruntime小的那个任务进行运行。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Linux/">#Linux</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>linux进程调度</div>
+      <div>http://example.com/2023/06/13/进程调度/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>bollcode</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年6月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/06/13/%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0/" title="linux内核锁实现">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">linux内核锁实现</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/06/13/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="linux文件系统">
+                        <span class="hidden-mobile">linux文件系统</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
