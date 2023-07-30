@@ -18,22 +18,24 @@
   
     <meta name="description" content="C++互斥锁mutex使用与原理什么是mutexC++11中提供了一个互斥锁mutex,它是C++用来实现线程之间互斥的一个类，包含在&lt;mutex&gt;头文件中。mutex共有四种：  std::mutex：最基本的mutex类 std::recursive_mutex：递归mutex类 std::time_mutex：定时mutex类 std::recursive_timed_mutex">
 <meta property="og:type" content="article">
-<meta property="og:title" content="C++互斥锁mutex">
+<meta property="og:title" content="Hexo">
 <meta property="og:url" content="http://example.com/2023/07/30/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="C++互斥锁mutex使用与原理什么是mutexC++11中提供了一个互斥锁mutex,它是C++用来实现线程之间互斥的一个类，包含在&lt;mutex&gt;头文件中。mutex共有四种：  std::mutex：最基本的mutex类 std::recursive_mutex：递归mutex类 std::time_mutex：定时mutex类 std::recursive_timed_mutex">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/img/C++.jpg">
+<meta property="og:image" content="http://example.com/2023/07/30/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/image-20230611171715853-16864750376841.png">
+<meta property="og:image" content="http://example.com/2023/07/30/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/image-20230611173335904.png">
+<meta property="og:image" content="http://example.com/2023/07/30/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/image-20230611173349721.png">
+<meta property="og:image" content="http://example.com/2023/07/30/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/image-20230703212114689.png">
 <meta property="article:published_time" content="2023-07-30T07:55:55.205Z">
-<meta property="article:modified_time" content="2023-07-30T08:07:56.196Z">
+<meta property="article:modified_time" content="2023-07-30T08:13:58.873Z">
 <meta property="article:author" content="bollcode">
-<meta property="article:tag" content="c++">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://example.com/img/C++.jpg">
+<meta name="twitter:image" content="http://example.com/2023/07/30/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/image-20230611171715853-16864750376841.png">
   
   
   
-  <title>C++互斥锁mutex - Hexo</title>
+  <title>Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -199,7 +201,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="C++互斥锁mutex"></span>
+            <span id="subtitle" data-typed-text=""></span>
           
         </div>
 
@@ -233,7 +235,7 @@
         
         
         
-          160 分钟
+          158 分钟
         
       </span>
     
@@ -271,7 +273,7 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">C++互斥锁mutex</h1>
+            <h1 style="display: none"></h1>
             
             
               <div class="markdown-body">
@@ -397,15 +399,6 @@
 <p>futex_wait和futex_wake总结：</p>
 <p>1.futex_wait会将当前进程/线程的task_struct和互斥量包装成一个struct futex_q的元素，以mutex包装成的futex_key为哈希表的key做哈希计算，然后将futex_q元素插入哈希表。然后调用schedule_timeout将进程 / 线程挂起。</p>
 <p>2.futex_wake会根据互斥量将futex_q元素从哈希表取出，这样就可以获取到在互斥量上休眠的所有线程，然后会从前到后遍历链表元素唤醒nr_wakes个进程 / 线程。</p>
-<p>上面介绍的那个结构中的<code>lock</code>变量非0即1，当执行上锁的动作是，先判断这个lock的值是不是大于0，如果大于0，就将其减一，当解锁的时候直接就讲其加1。所以在上锁的时候，如果分下面三步走：</p>
-<ul>
-<li>读取lock的值</li>
-<li>修改lock的值</li>
-<li>写入到lock变量</li>
-</ul>
-<p>那么这三个步骤如果不是原子操作，就会导致多个线程获取到锁的情况，所以必须保证修改lock的值是一个原子操作，这样才能保证只有一个线程获取锁。</p>
-<p>在代码底层方面是采用了一行代码：<code>xchgb %al , mutex</code>,这行指令就是完成寄存器<code>al</code>和<code>mutex</code>变量值的交换,就可以实现了原子修改mutex变量的值。具体代码如下：</p>
-<p><img src="/2023/07/30/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/image-20230611224713037.png" srcset="/img/loading.gif" lazyload alt="image-20230611224713037"></p>
 
                 
               </div>
@@ -415,13 +408,6 @@
               <div class="post-metas my-3">
   
   
-    <div class="post-meta">
-      <i class="iconfont icon-tags"></i>
-      
-        <a href="/tags/c/">#c++</a>
-      
-    </div>
-  
 </div>
 
 
@@ -430,7 +416,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>C++互斥锁mutex</div>
+      <div></div>
       <div>http://example.com/2023/07/30/C++互斥锁mutex使用与原理/</div>
     </div>
     <div class="license-meta">
