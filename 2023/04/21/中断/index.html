@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/img/linux.jpg">
 <meta property="article:published_time" content="2023-04-21T07:39:59.700Z">
-<meta property="article:modified_time" content="2023-06-25T09:12:54.804Z">
+<meta property="article:modified_time" content="2023-07-25T14:37:00.893Z">
 <meta property="article:author" content="bollcode">
 <meta property="article:tag" content="Linux">
 <meta name="twitter:card" content="summary_large_image">
@@ -222,7 +222,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          8.7k 字
+          9.3k 字
         
       </span>
     
@@ -233,7 +233,7 @@
         
         
         
-          73 分钟
+          78 分钟
         
       </span>
     
@@ -484,6 +484,20 @@
 </ul>
 <p>……</p>
 <p>以上我们就结束了这个进程切换的时候栈发生的变化。</p>
+<h2 id="中断向量表初始化"><a href="#中断向量表初始化" class="headerlink" title="中断向量表初始化"></a>中断向量表初始化</h2><p>中断向量表是在内核初始化的时候进行初始化的，主要设置每一个中断描述符（中断门、陷阱门）。中断门和陷阱门的区别就是，中断门会在经过它时，关闭系统中断，而陷阱门不会在经过它时关闭中断。</p>
+<ul>
+<li><strong>系统调用是一个陷阱门，所以系统调用是可以被中断的。</strong></li>
+<li>系统调用的中断描述符的DPL设置为3，这样才能通过中断的优先级检查，而其他的中断门不是设置为3，因为他们不会在经过中断门进行特权级检查，所以都设置为了0（为了防止用户在用户态使用了非系统调用号的int指令而进入内核。）</li>
+</ul>
+<h2 id="中断下半部分"><a href="#中断下半部分" class="headerlink" title="中断下半部分"></a>中断下半部分</h2><p>linux将中断处理分成了上半部分和下半部分，上半部分就是前面介绍的中断处理部分，它能够快速响应中断并进行处理，由于外部中断在经过中断门的时候，会关闭外部中断，那么当中断服务程序执行时间过长的时候，就会导致错过一些中断信息，所以为了减少中断关闭时间，就将中断服务程序分成了上半部分和下半部分，上半部分不能够被打断，将一些执行时间较长的动作放到下半部分，下半部分可以被外部中断打断。</p>
+<p>linux有三种方法实现下半部分：</p>
+<ul>
+<li>软中断</li>
+<li>tasklet</li>
+<li>等待队列</li>
+</ul>
+<h3 id="软中断"><a href="#软中断" class="headerlink" title="软中断"></a>软中断</h3><p>软中断一般很少用于实现下半部，一般使用tasklet，但是tasklet又是基于软中断实现的，所以我们先介绍一下这个软中断。</p>
+<p>字面理解，软中断就是软件实现的异步中断，它的优先级比硬中断低，但比普通进程优先级高，同时，它和硬中断一样不能休眠。软中断是在编译时候静态分配的，要用软中断必须修改内核代码。</p>
 <h3 id="x86-64下的系统调用syscall指令"><a href="#x86-64下的系统调用syscall指令" class="headerlink" title="x86_64下的系统调用syscall指令"></a>x86_64下的系统调用syscall指令</h3><p><strong>x86_64架构下较新的linux系统版本的系统调用采用了syscall指令了，不采用int指令产生中断了？</strong></p>
 <p><a target="_blank" rel="noopener" href="http://gityuan.com/2016/05/21/syscall/">http://gityuan.com/2016/05/21/syscall/</a></p>
 <p><a target="_blank" rel="noopener" href="https://wenfh2020.com/2021/09/05/kernel-syscall/">https://wenfh2020.com/2021/09/05/kernel-syscall/</a> 【详细】</p>
