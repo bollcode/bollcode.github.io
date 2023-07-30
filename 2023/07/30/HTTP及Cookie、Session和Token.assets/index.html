@@ -19,7 +19,7 @@
     <meta name="description" content="HTTP协议介绍1. 什么是HTTP 前言   浏览器  web Broser 我们在地址栏输入url后，然后浏览器会DNS（域名浏览器）提供网址，然后获取url到ip地址的映射。然后将你的请求发送给具体的服务器。服务器接收到请求之后返回结果给浏览器，是HTML编码格式，浏览器通过解析执行HTML编码，将结果显示出来。 这就是一个请求和响应额过程   web 服务器  web服务器就是网站服务器，">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTTP协议介绍">
-<meta property="og:url" content="http://example.com/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken/index.html">
+<meta property="og:url" content="http://example.com/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken.assets/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="HTTP协议介绍1. 什么是HTTP 前言   浏览器  web Broser 我们在地址栏输入url后，然后浏览器会DNS（域名浏览器）提供网址，然后获取url到ip地址的映射。然后将你的请求发送给具体的服务器。服务器接收到请求之后返回结果给浏览器，是HTML编码格式，浏览器通过解析执行HTML编码，将结果显示出来。 这就是一个请求和响应额过程   web 服务器  web服务器就是网站服务器，">
 <meta property="og:locale" content="zh_CN">
@@ -373,12 +373,12 @@
 <li><p>而且在 header 和 body 之间必须要有一个空行（**==CRLF==**）</p>
 </li>
 </ul>
-<img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken/format,png.png" srcset="/img/loading.gif" lazyload alt="img" style="zoom:50%;">
+<img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken.assets/format,png.png" srcset="/img/loading.gif" lazyload alt="img" style="zoom:50%;">
 
 <blockquote>
 <p>我们使用上面的那个例子来看一下 http 的请求报文</p>
 </blockquote>
-<img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken/format,png-16387894762805.png" srcset="/img/loading.gif" lazyload alt="img" style="zoom:33%;">
+<img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken.assets/format,png-16387894762805.png" srcset="/img/loading.gif" lazyload alt="img" style="zoom:33%;">
 
 <ul>
 <li>这个每一行和下一行中间都隔了一个空行</li>
@@ -393,7 +393,7 @@
 <li><strong>URL</strong> </li>
 <li><strong>HTTP版本版本号</strong></li>
 </ol>
-<p>如下图：<img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken/format,png-16387898310397.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>如下图：<img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken.assets/format,png-16387898310397.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <h4 id="4-1-1-请求方法"><a href="#4-1-1-请求方法" class="headerlink" title="4.1.1 请求方法"></a>4.1.1 请求方法</h4><p>一共有8中HTTP请求方法：</p>
 <ol>
 <li><code>GET 获取资源</code>，GET 方法用来请求访问已被 URI 识别的资源。指定的资源经服务器端解析后返回响应内容。也就是说，如果请求的资源是文本，那就保持原样返回；</li>
@@ -405,7 +405,7 @@
 <li>TRACE 追踪路径，TRACE 方法是让 Web 服务器端将之前的请求通信环回给客户端的方法。</li>
 <li>CONNECT 要求用隧道协议连接代理，CONNECT 方法要求在与代理服务器通信时建立隧道，实现用隧道协议进行 TCP 通信。主要使用 SSL（Secure Sockets Layer，安全套接层）和 TLS（Transport Layer Security，传输层安全）协议把通信内容加 密后经网络隧道传输</li>
 </ol>
-<p><img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken/format,png-16387900834309.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken.assets/format,png-16387900834309.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <h4 id="4-1-2-HTTP-请求-URL"><a href="#4-1-2-HTTP-请求-URL" class="headerlink" title="4.1.2 HTTP 请求 URL"></a>4.1.2 HTTP 请求 URL</h4><p><strong>HTTP 协议使用 URI 定位互联网上的资源。正是因为 URI 的特定功能，在互联网上任意位置的资源都能访问到。</strong></p>
 <p>下面我们解析一个比较长的URL:</p>
 <p><code>http://www.example.com:80/path/to/myfile.html?key1=value1&amp;key2=value2#SomewhereInTheDocument</code></p>
@@ -444,7 +444,7 @@
 <li>request headers 请求头部</li>
 <li>response headers 响应头部</li>
 </ol>
-<img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken/image-20211206195249640-163879159195512.png" srcset="/img/loading.gif" lazyload alt="image-20211206195249640" style="zoom:50%;">
+<img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken.assets/image-20211206195249640-163879159195512.png" srcset="/img/loading.gif" lazyload alt="image-20211206195249640" style="zoom:50%;">
 
 <blockquote>
 <p><strong>HTTP header 常用属性</strong></p>
@@ -486,7 +486,7 @@
 <li>Cookie：浏览器用这个属性向服务器发送Cookie。Cookie是在浏览器中寄存的小型数据体，它可以记载和服务器相关的用户信息，也可以用来实现会话功能。</li>
 </ul>
 <p>（7）headers 常见安全攻击</p>
-<img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3UwMTE1NzExODk=,size_16,color_FFFFFF,t_70.png" srcset="/img/loading.gif" lazyload alt="img" style="zoom: 33%;">
+<img src="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken.assets/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3UwMTE1NzExODk=,size_16,color_FFFFFF,t_70.png" srcset="/img/loading.gif" lazyload alt="img" style="zoom: 33%;">
 
 <blockquote>
 <p>请求头部 request headers</p>
@@ -551,7 +551,7 @@
   <div class="license-box my-3">
     <div class="license-title">
       <div>HTTP协议介绍</div>
-      <div>http://example.com/2023/07/30/HTTP及Cookie、Session和Token/</div>
+      <div>http://example.com/2023/07/30/HTTP及Cookie、Session和Token.assets/</div>
     </div>
     <div class="license-meta">
       
@@ -599,8 +599,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/07/30/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/" title="">
-                        <span class="hidden-mobile"></span>
+                      <a href="/2023/07/30/C++%E4%BA%92%E6%96%A5%E9%94%81mutex%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86/" title="C++互斥锁mutex">
+                        <span class="hidden-mobile">C++互斥锁mutex</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
