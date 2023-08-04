@@ -16,16 +16,16 @@
   <meta name="author" content="bollcode">
   <meta name="keywords" content="">
   
-    <meta name="description" content="mit 6.828基本 git 如果完成lab之后，开始执行下面 git add –all git commit -m“” git push along-lab labx git checkout -b lab(x+1) origin&#x2F;lab(x+1) git merge labx git add –all git commit -m”” git push along-lab lab(x+1) l">
+    <meta name="description" content="mit 6.828基本 git 如果完成lab之后，开始执行下面 git add –all git commit -m“” git push along-lab labx git checkout -b lab(x+1) origin&#x2F;lab(x+1) git merge labx git add –all git commit -m”” git push along-lab lab(x+1) 实">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT-6.828操作系统">
 <meta property="og:url" content="http://example.com/2023/08/04/mit-6.828/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="mit 6.828基本 git 如果完成lab之后，开始执行下面 git add –all git commit -m“” git push along-lab labx git checkout -b lab(x+1) origin&#x2F;lab(x+1) git merge labx git add –all git commit -m”” git push along-lab lab(x+1) l">
+<meta property="og:description" content="mit 6.828基本 git 如果完成lab之后，开始执行下面 git add –all git commit -m“” git push along-lab labx git checkout -b lab(x+1) origin&#x2F;lab(x+1) git merge labx git add –all git commit -m”” git push along-lab lab(x+1) 实">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/img/mit6.828.jpg">
 <meta property="article:published_time" content="2023-08-04T13:02:03.692Z">
-<meta property="article:modified_time" content="2023-08-03T14:45:14.497Z">
+<meta property="article:modified_time" content="2023-08-04T13:09:55.769Z">
 <meta property="article:author" content="bollcode">
 <meta property="article:tag" content="MIT6.828">
 <meta name="twitter:card" content="summary_large_image">
@@ -222,7 +222,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          102k 字
+          101k 字
         
       </span>
     
@@ -233,7 +233,7 @@
         
         
         
-          848 分钟
+          839 分钟
         
       </span>
     
@@ -286,46 +286,6 @@
 <p>git add –all</p>
 <p>git commit -m””</p>
 <p>git push along-lab lab(x+1)</p>
-<h2 id="lab1"><a href="#lab1" class="headerlink" title="lab1"></a>lab1</h2><p><img src="/2023/08/04/mit-6.828/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM3NzAyODkw,size_16,color_FFFFFF,t_70.png" srcset="/img/loading.gif" lazyload alt="img"></p>
-<h3 id="1-gdb调试"><a href="#1-gdb调试" class="headerlink" title="1. gdb调试"></a>1. gdb调试</h3><blockquote>
-<p>第一步：</p>
-</blockquote>
-<p>在lab文件夹下打开一个终端并执行<code>make qemu-gdb</code></p>
-<blockquote>
-<p>第二步</p>
-</blockquote>
-<p>再在lab文件夹下打开一个终端，执行<code>make gdb</code></p>
-<p>如果出现了“auto-load safe-path’ 这种错误，那我们执行<code>gdb -iex &quot;set auto-load safe-path /&quot;</code>,</p>
-<p>执行完成make gdb 或gdb -iex “set auto-load safe-path /“后，如果出现连接超时现象</p>
-<p>大概率是端口错误</p>
-<p>我们指定端口重新连接，在gdb下执行这个命令：<code>target remote:26000</code> </p>
-<p>然后通过<code>si</code>命令就可以一步步的执行cpu汇编程序了</p>
-<p>一个si命令就会执行一步，一步重复si命令就行</p>
-<h3 id="2-gdb命令"><a href="#2-gdb命令" class="headerlink" title="2. gdb命令"></a>2. gdb命令</h3><p>b *0x10000c 代表的打断点</p>
-<p>si命令是执行下一步</p>
-<p>x/nxb 0x100000   这个命令是显示ox100000存储器后的n个字节内容</p>
-<h3 id="3-虚拟地址和物理地址"><a href="#3-虚拟地址和物理地址" class="headerlink" title="3. 虚拟地址和物理地址"></a>3. 虚拟地址和物理地址</h3><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/421006318">参考博客</a></p>
-<blockquote>
-<p>虚拟地址 ： 就是编译器链接之后的程序地址，但是这个地址和实际的物理地址不相等，他会在加载程序和运行程序的时候转换成（映射）实际物理地址</p>
-</blockquote>
-<blockquote>
-<p>物理地址：就是实际的物理地址，对应的就是内存条上的地址</p>
-</blockquote>
-<blockquote>
-<p>如何通过虚拟地址映射到实际的物理地址</p>
-</blockquote>
-<p>针对于二级目录来讲的</p>
-<ol>
-<li>将虚拟地址的高10为用作页目录表的索引：找到指定的页表   一个页目录就是占用的一个页的大小即1024个页表项</li>
-<li>然后通过指定的页目录项中的内容（指定的页表的起始地址），找到了指定的页表，然后通过高10位后的10位用做页项索引，一个页表也是占用一个页，一个页表可以对应1024个页项</li>
-<li>然后通过指定的页表项中的内容（指定的页的其实位置），找到了指定的页，然后根据后12位作为实际地址的索引，这样就将一个虚拟地址映射到了一个实际物理地址</li>
-</ol>
-<p>【重点】 这个页目录、页表都是在加载程序的时候给确定分配完成的，后面就可以根据这个页目录表和页表就可以根据虚拟地址找到了物理地址，就是存放程序的实际地方。</p>
-<p>【看上面的博客的第四节和第五节，就是如何创建页目录表和页表以及如何根据虚拟地址找到物理地址】</p>
-<h2 id="lab2-memory-management"><a href="#lab2-memory-management" class="headerlink" title="lab2  memory management"></a>lab2  memory management</h2><h3 id="1-va-list-可变参数原理"><a href="#1-va-list-可变参数原理" class="headerlink" title="1. va_list 可变参数原理"></a>1. va_list 可变参数原理</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/ZKR_HN/article/details/99558135">可变参数原理</a></p>
-<p>c语言中，函数的参数是从右往左压入栈中的，所以，右边的参数先压入栈，左边的参数后压入栈</p>
-<p>C语言的函数形参是从右向左压入堆栈的，以保证栈顶是第一个参数，而且x86平台内存分配顺序是从高地址到低地址。因此似函数AVEInt(int var1,int<br>var2,…,int varN)内存分配大致上是这样的：(可变参数在中间)</p>
-<p><img src="/2023/08/04/mit-6.828/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1pLUl9ITg==,size_16,color_FFFFFF,t_70.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <h1 id="实验总结"><a href="#实验总结" class="headerlink" title="实验总结"></a>实验总结</h1><h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6989917722519797797">https://juejin.cn/post/6989917722519797797</a></p>
 <p>【基本命令】<a target="_blank" rel="noopener" href="https://blog.csdn.net/fantasy_wxe/article/details/52198650">https://blog.csdn.net/fantasy_wxe/article/details/52198650</a></p>
 <h3 id="QEMU"><a href="#QEMU" class="headerlink" title="QEMU"></a>QEMU</h3><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/bakari/p/7858029.html">https://www.cnblogs.com/bakari/p/7858029.html</a></p>
@@ -363,7 +323,7 @@
 <p>这门课就是采用qemu来模拟一个x86架构的计算机来运行你的xv6操作系统，这个软件也可以和gdb一起搭配使用，这样我们就可以在这个qemu上来一条指令一条指令的调试你的xv6操作系统了</p>
 <p>当我们下载完成qemu后，我们需要先编译我们下载的操作系统源码，用来生成能够运行在qemu上的操作系统映像文件，编译完成之后会生成一个obl/kern/kernel.img,这个kernel.img文件就是编译后的操作系统镜像文件，这个文件是操作系统make之后生成的。</p>
 <p>然后我们在lab的目录下输入make qemu，此时qemu就开始加载我们的操作系统内核映像文件了</p>
-<h2 id="lab1-1"><a href="#lab1-1" class="headerlink" title="lab1"></a>lab1</h2><h3 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h3><h4 id="物理地址布局"><a href="#物理地址布局" class="headerlink" title="物理地址布局"></a>物理地址布局</h4><p>PC的物理地址基本内存布局：</p>
+<h2 id="lab1"><a href="#lab1" class="headerlink" title="lab1"></a>lab1</h2><h3 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h3><h4 id="物理地址布局"><a href="#物理地址布局" class="headerlink" title="物理地址布局"></a>物理地址布局</h4><p>PC的物理地址基本内存布局：</p>
 <p><img src="/2023/08/04/mit-6.828/image-20230301192502377-16776699035263.png" srcset="/img/loading.gif" lazyload alt="image-20230301192502377"></p>
 <p><img src="/2023/08/04/mit-6.828/6818371c053c41309ca53d732effd757tplv-k3u1fbpfcp-zoom-in-crop-mark4536000.webp" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>第一代PC处理器是16位字长的Intel 8088处理器，这类处理器只能访问1MB的地址空间，即0x00000000-0x000FFFFF。但是这1MB也不是用户都能利用到的，只有低640KB(0x00000000-0x000A0000)的地址空间是用户程序可以使用的（DRAM–动态随机访问内存）。而剩下的384KB的高地址空间则被保留用作其他的目的，比如(0x000A0000-0x000C0000)被用作屏幕显示内容缓冲区，其他的则被非易失性存储器(ROM)所使用，里面会存放一些固件，其中最重要的一部分就是BIOS（存在ROM中），占据了0x000F0000~0x00100000的地址空间。</p>
