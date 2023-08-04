@@ -16,16 +16,16 @@
   <meta name="author" content="bollcode">
   <meta name="keywords" content="">
   
-    <meta name="description" content="mit 6.828基本 git 如果完成lab之后，开始执行下面 git add –all git commit -m“” git push along-lab labx git checkout -b lab(x+1) origin&#x2F;lab(x+1) git merge labx git add –all git commit -m”” git push along-lab lab(x+1) 实">
+    <meta name="description" content="实验总结前置知识https:&#x2F;&#x2F;juejin.cn&#x2F;post&#x2F;6989917722519797797 【基本命令】https:&#x2F;&#x2F;blog.csdn.net&#x2F;fantasy_wxe&#x2F;article&#x2F;details&#x2F;52198650 QEMUhttps:&#x2F;&#x2F;www.cnblogs.com&#x2F;bakari&#x2F;p&#x2F;7858029.html Qemu 是纯软件实现的虚拟化模拟器，几乎可以模拟任何硬件设备，我们">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT-6.828操作系统">
 <meta property="og:url" content="http://example.com/2023/08/04/mit-6.828/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="mit 6.828基本 git 如果完成lab之后，开始执行下面 git add –all git commit -m“” git push along-lab labx git checkout -b lab(x+1) origin&#x2F;lab(x+1) git merge labx git add –all git commit -m”” git push along-lab lab(x+1) 实">
+<meta property="og:description" content="实验总结前置知识https:&#x2F;&#x2F;juejin.cn&#x2F;post&#x2F;6989917722519797797 【基本命令】https:&#x2F;&#x2F;blog.csdn.net&#x2F;fantasy_wxe&#x2F;article&#x2F;details&#x2F;52198650 QEMUhttps:&#x2F;&#x2F;www.cnblogs.com&#x2F;bakari&#x2F;p&#x2F;7858029.html Qemu 是纯软件实现的虚拟化模拟器，几乎可以模拟任何硬件设备，我们">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/img/mit6.828.jpg">
 <meta property="article:published_time" content="2023-08-04T13:02:03.692Z">
-<meta property="article:modified_time" content="2023-08-04T13:09:55.769Z">
+<meta property="article:modified_time" content="2023-08-04T13:17:40.425Z">
 <meta property="article:author" content="bollcode">
 <meta property="article:tag" content="MIT6.828">
 <meta name="twitter:card" content="summary_large_image">
@@ -276,17 +276,7 @@
             
               <div class="markdown-body">
                 
-                <h1 id="mit-6-828"><a href="#mit-6-828" class="headerlink" title="mit 6.828"></a>mit 6.828</h1><p>基本 git</p>
-<p>如果完成lab之后，开始执行下面</p>
-<p>git add –all</p>
-<p>git commit -m“”</p>
-<p>git push along-lab labx</p>
-<p>git checkout -b lab(x+1) origin/lab(x+1)</p>
-<p>git merge labx</p>
-<p>git add –all</p>
-<p>git commit -m””</p>
-<p>git push along-lab lab(x+1)</p>
-<h1 id="实验总结"><a href="#实验总结" class="headerlink" title="实验总结"></a>实验总结</h1><h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6989917722519797797">https://juejin.cn/post/6989917722519797797</a></p>
+                <h1 id="实验总结"><a href="#实验总结" class="headerlink" title="实验总结"></a>实验总结</h1><h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6989917722519797797">https://juejin.cn/post/6989917722519797797</a></p>
 <p>【基本命令】<a target="_blank" rel="noopener" href="https://blog.csdn.net/fantasy_wxe/article/details/52198650">https://blog.csdn.net/fantasy_wxe/article/details/52198650</a></p>
 <h3 id="QEMU"><a href="#QEMU" class="headerlink" title="QEMU"></a>QEMU</h3><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/bakari/p/7858029.html">https://www.cnblogs.com/bakari/p/7858029.html</a></p>
 <p>Qemu 是纯软件实现的虚拟化模拟器，几乎可以模拟任何硬件设备，我们最熟悉的就是能够模拟一台能够独立运行操作系统的虚拟机，虚拟机认为自己和硬件打交道，但其实是和 Qemu 模拟出来的硬件打交道，Qemu 将这些指令转译给真正的硬件。</p>
@@ -1329,6 +1319,16 @@
 <p><img src="/2023/08/04/mit-6.828/lab5_6_fs%E8%BF%9B%E7%A8%8B%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86.png" srcset="/img/loading.gif" lazyload alt="客户端进程和FS进程交互"></p>
 <p>更高级的抽象，引入<strong>文件描述符</strong>。通过文件描述符这一层抽象就可以将<strong>控制台，pipe，普通文件</strong>，统统按照文件来对待。文件描述符和pipe的原理总结如下：</p>
 <p><img src="/2023/08/04/mit-6.828/lab5_5_%E6%96%87%E4%BB%B6_fd%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86_pipe%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86.png" srcset="/img/loading.gif" lazyload alt="文件描述符和pipe原理"></p>
+<p>基本 git</p>
+<p>如果完成lab之后，开始执行下面</p>
+<p>git add –all</p>
+<p>git commit -m“”</p>
+<p>git push along-lab labx</p>
+<p>git checkout -b lab(x+1) origin/lab(x+1)</p>
+<p>git merge labx</p>
+<p>git add –all</p>
+<p>git commit -m””</p>
+<p>git push along-lab lab(x+1)</p>
 
                 
               </div>
