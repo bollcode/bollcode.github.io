@@ -19,13 +19,13 @@
     <meta name="description" content="CMU-15445Project1–BufferPool这个实验主要是完成一个BufferPool Manager，因为磁盘的读写速度很慢，所以我们将在内存中维护一定大小的内存，作为数据库数据的缓冲区，即创建一个BufferPool来做缓冲区。这个实验主要分三个部分，一个是Lru_replacer ，一个是实现一个bufferpool manager instance，一个是parallel bu">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CMU-15445 数据库">
-<meta property="og:url" content="http://example.com/2023/04/13/CMU-15445/index.html">
+<meta property="og:url" content="http://example.com/2023/08/04/CMU-15445/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="CMU-15445Project1–BufferPool这个实验主要是完成一个BufferPool Manager，因为磁盘的读写速度很慢，所以我们将在内存中维护一定大小的内存，作为数据库数据的缓冲区，即创建一个BufferPool来做缓冲区。这个实验主要分三个部分，一个是Lru_replacer ，一个是实现一个bufferpool manager instance，一个是parallel bu">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/img/cmu15445.jpg">
-<meta property="article:published_time" content="2023-04-13T13:28:37.143Z">
-<meta property="article:modified_time" content="2023-06-25T09:12:13.591Z">
+<meta property="article:published_time" content="2023-08-04T13:03:16.304Z">
+<meta property="article:modified_time" content="2023-08-04T13:02:55.686Z">
 <meta property="article:author" content="bollcode">
 <meta property="article:tag" content="CMU15445">
 <meta name="twitter:card" content="summary_large_image">
@@ -210,8 +210,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-04-13 21:28" pubdate>
-          2023年4月13日 晚上
+        <time datetime="2023-08-04 21:03" pubdate>
+          2023年8月4日 晚上
         </time>
       </span>
     
@@ -276,7 +276,7 @@
             
               <div class="markdown-body">
                 
-                <h1 id="CMU-15445"><a href="#CMU-15445" class="headerlink" title="CMU-15445"></a>CMU-15445</h1><h2 id="Project1–BufferPool"><a href="#Project1–BufferPool" class="headerlink" title="Project1–BufferPool"></a>Project1–BufferPool</h2><p>这个实验主要是完成一个BufferPool Manager，因为磁盘的读写速度很慢，所以我们将在内存中维护一定大小的内存，作为数据库数据的缓冲区，即创建一个BufferPool来做缓冲区。这个实验主要分三个部分，一个是Lru_replacer ，一个是实现一个bufferpool manager instance，一个是parallel bufferpool manager。</p>
+                <h1 id="CMU-15445"><a href="#CMU-15445" class="headerlink" title="CMU-15445"></a>CMU-15445</h1><h2 id="Project1–BufferPool"><a href="#Project1–BufferPool" class="headerlink" title="Project1–BufferPool"></a>Project1–BufferPool</h2><p>这个实验主要是完成一个BufferPool Manager，因为磁盘的读写速度很慢，所以我们将在内存中维护一定大小的内存，作为数据库数据的缓冲区，即创建一个BufferPool来做缓冲区。这个实验主要分三个部分，一个是Lru_replacer ，一个是实现一个bufferpool manager instance，一个是parallel bufferpool manager。 </p>
 <h3 id="对象关系整理"><a href="#对象关系整理" class="headerlink" title="对象关系整理"></a>对象关系整理</h3><h3 id="Lru-replacer"><a href="#Lru-replacer" class="headerlink" title="Lru_replacer"></a>Lru_replacer</h3><p>这个是一种置换策略，<strong>最近最少使用</strong>算法，用来将bufferpool中最长时间没有使用的page给剔除内存，从而腾出新的空间。</p>
 <p><a target="_blank" rel="noopener" href="https://leetcode.cn/problems/lru-cache/description/">Lru算法leetcode</a></p>
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34343254/article/details/110082648">https://blog.csdn.net/qq_34343254/article/details/110082648</a></p>
@@ -295,7 +295,7 @@
 
 <blockquote>
 <p>我们在这个实验中需要实现几个重要的函数：</p>
-<p><img src="/2023/04/13/CMU-15445/image-20230314164341378.png" srcset="/img/loading.gif" lazyload alt="image-20230314164341378"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230314164341378.png" srcset="/img/loading.gif" lazyload alt="image-20230314164341378"></p>
 <p><strong>我们添加了几个重要变量：一个是维护的双向链表，和一个hash表，为了是能够快速定位到要更改的节点。</strong></p>
 </blockquote>
 <h4 id="LRUReplacer-Victim"><a href="#LRUReplacer-Victim" class="headerlink" title="LRUReplacer::Victim"></a>LRUReplacer::Victim</h4><blockquote>
@@ -328,7 +328,7 @@
 <li>我们使用page_table这个来映射pageid和frameid的关系。</li>
 <li>freelist 代表的是这个pages数组中空闲的frameid，他是一个链表，我们向bufferpool申请空间的时候，我们会先看看freelist是不是为空，如果不为空，就拿下一个分配给申请者，并把这个frameid加入到lruReplacer中，然后在page_table中添加pageid和frameid之间的关系</li>
 </ul>
-<p><img src="/2023/04/13/CMU-15445/image-20230314211944477.png" srcset="/img/loading.gif" lazyload alt="image-20230314211944477"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230314211944477.png" srcset="/img/loading.gif" lazyload alt="image-20230314211944477"></p>
 <blockquote>
 <p><strong>我们在上面已经讨论了这个lrureplacer的作用，他就是记录现在已经使用过的frameid对应的空间，也就是表示这些空间上的page现在没有被使用，可以被刷新到磁盘。</strong></p>
 <ul>
@@ -360,12 +360,12 @@
 <blockquote>
 <p>首先在创建bufferpoolmanagerinstance的时候，构造函数会初始化一些参数，比如磁盘管理器，bufferpool的大小，比较重要的是要初始化<code>freelist</code>将所有的frameid放进链表中</p>
 </blockquote>
-<p><img src="/2023/04/13/CMU-15445/image-20230314213547817.png" srcset="/img/loading.gif" lazyload alt="image-20230314213547817"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230314213547817.png" srcset="/img/loading.gif" lazyload alt="image-20230314213547817"></p>
 <blockquote>
 <p> flushpgimp：这个函数是将指定的pageid页面给写入到磁盘</p>
 <p>【对于这个pageid 我还是有点疑惑】</p>
 </blockquote>
-<p><img src="/2023/04/13/CMU-15445/image-20230314213706152.png" srcset="/img/loading.gif" lazyload alt="image-20230314213706152"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230314213706152.png" srcset="/img/loading.gif" lazyload alt="image-20230314213706152"></p>
 <blockquote>
 <p>FetchPgImp： 这个函数根据指定的pageid来获取在pages中的指定的page</p>
 <ul>
@@ -383,19 +383,19 @@
 </blockquote>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> *  这个函数是为一个页在bufferpool中分配一个位置，然后分配一个pageid，并将其pageid和frameid关系加入到pagetable中</span><br><span class="hljs-comment"> *  然后返回一个Page指针，指向了Pages数组中某一个page地址，就是在pages数组中申请了一个page空间</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">Page *<span class="hljs-title">BufferPoolManagerInstance::NewPgImp</span><span class="hljs-params">(<span class="hljs-type">page_id_t</span> *page_id)</span> </span>&#123;<br>  <span class="hljs-comment">// 0.   Make sure you call AllocatePage!</span><br>  <span class="hljs-comment">// 1.   If all the pages in the buffer pool are pinned, return nullptr.</span><br>  <span class="hljs-comment">// 2.   Pick a victim page P from either the free list or the replacer. Always pick from the free list first.</span><br>  <span class="hljs-comment">// 3.   Update P&#x27;s metadata, zero out memory and add P to the page table.</span><br>  <span class="hljs-comment">// 4.   Set the page ID output parameter. Return a pointer to P.</span><br>  <span class="hljs-function">std::lock_guard&lt;std::mutex&gt; <span class="hljs-title">guard</span><span class="hljs-params">(latch_)</span></span>;<br>  <span class="hljs-type">frame_id_t</span> frameid = <span class="hljs-number">-1</span>;<br>  Page *page = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-keyword">if</span> (!free_list_.<span class="hljs-built_in">empty</span>()) &#123;<br>    <span class="hljs-comment">// 说明空闲链表中有空闲的frame_id,也就是在bufferpool中有空位</span><br>    <span class="hljs-comment">// 获取一个空闲的位置, 将page指向bufferpool的对应的page的位置</span><br>    frameid = free_list_.<span class="hljs-built_in">front</span>();<br>    free_list_.<span class="hljs-built_in">pop_front</span>();<br>    page = &amp;pages_[frameid];<br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (replacer_-&gt;<span class="hljs-built_in">Victim</span>(&amp;frameid)) &#123;<br>    <span class="hljs-comment">// 当空闲链表中找不到空闲的位置，说明bufferpool中位置被占满了，</span><br>    <span class="hljs-comment">// 这个时候需要使用lru移除一个，调用Victim()移除一个，并返回这个移除的位置</span><br>    page = &amp;pages_[frameid];<br>    <span class="hljs-keyword">if</span> (page-&gt;<span class="hljs-built_in">IsDirty</span>()) &#123;<br>      disk_manager_-&gt;<span class="hljs-built_in">WritePage</span>(page-&gt;<span class="hljs-built_in">GetPageId</span>(), page-&gt;<span class="hljs-built_in">GetData</span>());<br>    &#125;<br>    <span class="hljs-comment">// 从pagetable中移除pageid和frameid的对应关系</span><br>    page_table_.<span class="hljs-built_in">erase</span>(page-&gt;<span class="hljs-built_in">GetPageId</span>());<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> (page !=<span class="hljs-literal">nullptr</span>) &#123;<br>    <span class="hljs-comment">// 说明上面在bufferpool中获取到了位置，现在应该将这个申请一个id</span><br>    *page_id = <span class="hljs-built_in">AllocatePage</span>();<br>    page-&gt;page_id_ = *page_id;<br>    page-&gt;pin_count_ = <span class="hljs-number">1</span>;<br>    page-&gt;is_dirty_ = <span class="hljs-literal">false</span>;<br>    page-&gt;<span class="hljs-built_in">ResetMemory</span>();<br>    page_table_[*page_id] = frameid;<br>    replacer_-&gt;<span class="hljs-built_in">Pin</span>(frameid);<br>    <span class="hljs-keyword">return</span> page;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<p><img src="/2023/04/13/CMU-15445/image-20230314215203809.png" srcset="/img/loading.gif" lazyload alt="image-20230314215203809"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230314215203809.png" srcset="/img/loading.gif" lazyload alt="image-20230314215203809"></p>
 <h3 id="ParallelBufferPoolManager"><a href="#ParallelBufferPoolManager" class="headerlink" title="ParallelBufferPoolManager"></a>ParallelBufferPoolManager</h3><p>为了提高bufferpool的并发程度，我们将bufferpoolmanager的粒度做的小一点，这样就能够实现更好的并发效果。</p>
 <h2 id="Project2-–-Hash-Index"><a href="#Project2-–-Hash-Index" class="headerlink" title="Project2 – Hash Index"></a>Project2 – Hash Index</h2><p>这个实验我们将完成数据库索引功能。我们使用extendible hash table来实现数据库索引功能，什么是可拓展hash表，可以参考这个文章： <a target="_blank" rel="noopener" href="https://www.geeksforgeeks.org/extendible-hashing-dynamic-approach-to-dbms/">https://www.geeksforgeeks.org/extendible-hashing-dynamic-approach-to-dbms/</a></p>
 <blockquote>
 <p>基本流程</p>
 </blockquote>
-<p><img src="/2023/04/13/CMU-15445/Basic-Working-of-Extendible-Hashing.png" srcset="/img/loading.gif" lazyload alt="Lightbox"></p>
+<p><img src="/2023/08/04/CMU-15445/Basic-Working-of-Extendible-Hashing.png" srcset="/img/loading.gif" lazyload alt="Lightbox"></p>
 <p>它的基本原理就是：我们会维护一个directory 和很多个bucket，通过一个hash函数，我们可以在directory中找到一个位置，这个位置存着某个bucket的指针，每一个bucket都是hash后相同的对象存在的空间。</p>
 <p>我们要清楚这个是一个可以拓展的hash表，通过维护directory的globaldepth 和很多bucket的localdepth来进行拓展hash表（主要拓展的是bucket）。</p>
 <h3 id="HashTableDirectoryPage"><a href="#HashTableDirectoryPage" class="headerlink" title="HashTableDirectoryPage"></a>HashTableDirectoryPage</h3><p>这个类就是可拓展hash表的directory，它里面维护了一个自己的globaldepth变量，一个bucket_localdepth数组和一个bucket_pageid数组。</p>
-<p><img src="/2023/04/13/CMU-15445/image-20230315213805600.png" srcset="/img/loading.gif" lazyload alt="image-20230315213805600"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230315213805600.png" srcset="/img/loading.gif" lazyload alt="image-20230315213805600"></p>
 <p>他在内存中占用一个page的大小（4096字节）：基本布局如下</p>
-<p><img src="/2023/04/13/CMU-15445/image-20230315213908417.png" srcset="/img/loading.gif" lazyload alt="image-20230315213908417"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230315213908417.png" srcset="/img/loading.gif" lazyload alt="image-20230315213908417"></p>
 <p>也就是说最多只能有512个bucket。</p>
 <blockquote>
 <p>下面介绍几个重要的函数</p>
@@ -428,7 +428,7 @@
 
 <h3 id="HashTableBucketPage"><a href="#HashTableBucketPage" class="headerlink" title="HashTableBucketPage"></a>HashTableBucketPage</h3><p>这个就是我们上面说的bucket，它里面包含了我们要存储的内容，通过这个类我们可以获取指定value并返回。</p>
 <p>它里面有几个重要的参数，来表示这个page空间的使用情况，通过一个个bit表示这个page空间value空间是不是被占用了。我们在这个空间里保存的value是带上了key 即 pair&lt;key,value&gt;</p>
-<p><img src="/2023/04/13/CMU-15445/image-20230315224019514.png" srcset="/img/loading.gif" lazyload alt="image-20230315224019514"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230315224019514.png" srcset="/img/loading.gif" lazyload alt="image-20230315224019514"></p>
 <blockquote>
 <p>几个比较重要的函数：</p>
 </blockquote>
@@ -526,11 +526,11 @@
 <li>首先是对于这个extendible hash table 的原理必须掌握清除，对于它的插入、删除这两个操作的原理必须掌握的很清楚才能够写出代码来。特别是这个<code>SplitImageIndex</code>这个函数的意义。</li>
 <li>对于这个hash表的各个函数必须是线程安全的，所以要对每个函数进行加锁处理</li>
 </ul>
-<h2 id="project3-query-executing"><a href="#project3-query-executing" class="headerlink" title="project3 query executing"></a>project3 query executing</h2><p><img src="/2023/04/13/CMU-15445/image-20230222154427720.png" srcset="/img/loading.gif" lazyload alt="image-20230222154427720"></p>
+<h2 id="project3-query-executing"><a href="#project3-query-executing" class="headerlink" title="project3 query executing"></a>project3 query executing</h2><p><img src="/2023/08/04/CMU-15445/image-20230222154427720.png" srcset="/img/loading.gif" lazyload alt="image-20230222154427720"></p>
 <h3 id="Executor–执行器"><a href="#Executor–执行器" class="headerlink" title="Executor–执行器"></a>Executor–执行器</h3><p>一个SQL语法句子会经过parser和binder生成一个查询计划数Planner</p>
 <p>例如：<code>SELECT t1.y, t2.x FROM t1 INNER JOIN t2 ON t1.x = t2.y;</code></p>
 <p>生成的Planner树就是</p>
-<img src="/2023/04/13/CMU-15445/image-20230222154706379.png" srcset="/img/loading.gif" lazyload alt="image-20230222154706379" style="zoom:50%;">
+<img src="/2023/08/04/CMU-15445/image-20230222154706379.png" srcset="/img/loading.gif" lazyload alt="image-20230222154706379" style="zoom:50%;">
 
 
 
@@ -562,7 +562,7 @@
 <blockquote>
 <p>在介绍所有的具体的执行器之前，我们先理清一下这个实验中的Table的关系</p>
 </blockquote>
-<p><img src="/2023/04/13/CMU-15445/image-20230222162447042.png" srcset="/img/loading.gif" lazyload alt="image-20230222162447042"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230222162447042.png" srcset="/img/loading.gif" lazyload alt="image-20230222162447042"></p>
 <ul>
 <li><p>**Catalog **首先，Bustub 有一个 Catalog。Catalog 提供了一系列 API，例如 <code>CreateTable()</code>、<code>GetTable()</code> 等等。Catalog 维护了几张 hashmap，保存了 table id 和 table name 到 table info 的映射关系。table id 由 Catalog 在新建 table 时自动分配，table name 则由用户指定。</p>
 </li>
@@ -633,7 +633,7 @@
 <li>concurrent query execution：修改之前的算子，SeqSacn、insert、delete等算子，加上合适的锁实现并发查询的效果</li>
 </ul>
 <h3 id="什么是事务"><a href="#什么是事务" class="headerlink" title="什么是事务"></a>什么是事务</h3><p>事务可以简单的理解为执行几个sql语句的动作</p>
-<h4 id="事务的隔离级别"><a href="#事务的隔离级别" class="headerlink" title="事务的隔离级别"></a>事务的隔离级别</h4><p><img src="/2023/04/13/CMU-15445/image-20230223193447618.png" srcset="/img/loading.gif" lazyload alt="image-20230223193447618"></p>
+<h4 id="事务的隔离级别"><a href="#事务的隔离级别" class="headerlink" title="事务的隔离级别"></a>事务的隔离级别</h4><p><img src="/2023/08/04/CMU-15445/image-20230223193447618.png" srcset="/img/loading.gif" lazyload alt="image-20230223193447618"></p>
 <p>下面介绍一下什么是脏读、不可重复读、幻读</p>
 <blockquote>
 <p>脏读：就是事务t1先修改了数据x的值，然后事务t2读取了事务1修改后x的值，但是事务1有由于某些原因导致事务中止，而事务2进行了正常的提交，因此此时事务2读取了了一个根本不存在的值。</p>
@@ -661,7 +661,7 @@
 <p>普通2PL产生的问题：<strong>级联回滚</strong></p>
 </blockquote>
 <p><strong>但是普通的2PL协议会产生<code>级联回滚</code>的问题：</strong>如下</p>
-<p><img src="/2023/04/13/CMU-15445/v2-8bbbdcc2984d9e3712e511dc9573c461_r.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/CMU-15445/v2-8bbbdcc2984d9e3712e511dc9573c461_r.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p><strong>我们可以看出，如果T1在释放A锁之后，我们的T2获取了A锁，然后读取了A的内容并提交了，但是呢此时T1失败了，这样就会产生了脏读现象，需要对事务进行回滚。</strong></p>
 <p><strong>为了解决这个问题，还有一种严格的2PL协议，就是在事务commit的时候才会去释放锁。</strong></p>
 <blockquote>
@@ -702,7 +702,7 @@
 <blockquote>
 <p>关于X锁和S锁共存问题</p>
 </blockquote>
-<p><img src="/2023/04/13/CMU-15445/image-20230223224027708.png" srcset="/img/loading.gif" lazyload alt="image-20230223224027708"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230223224027708.png" srcset="/img/loading.gif" lazyload alt="image-20230223224027708"></p>
 <p>判断是否需要等待获取锁，基本思想就是，老的事务抢占年轻的，年轻的等待老的，S锁可以同时获取。</p>
 <p>这个锁请求在lockmanager的hash表中，一个tuple对应着一个锁请求队列，这个队列中都是要上锁的请求。按照之前的申请的顺序排列的。</p>
 <p>然后我们构建一个锁请求后，然后根据WOUND-wait算法来判断是不是需要等待。</p>
@@ -724,14 +724,14 @@
 <p>这里解锁的思路虽然是上面，但是我们还需要根据2pl协议和事务隔离级别，在解锁后更改事务的状态。</p>
 </blockquote>
 <p>这一点我们可以看我们之前总结那三个隔离级别下的事务状态变化</p>
-<p><img src="/2023/04/13/CMU-15445/image-20230224161625654.png" srcset="/img/loading.gif" lazyload alt="image-20230224161625654"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230224161625654.png" srcset="/img/loading.gif" lazyload alt="image-20230224161625654"></p>
 <p>结论：所以，只有在REPEATABLE_READ隔离级别下，我们才需要在第一次SHARED锁解锁后将事务的状态设置成SHIRNKING状态，另外两个隔离级别是不需要这个两阶段锁协议的，并且READ_COMMITTED和REPEATABLE_READ的X锁释放都是在事务提交的时候才释放锁（可以看下面的代码，X锁的释放由事务提交统一释放），那个时候事务已经结束了，所以就不需要再判断解锁X锁设置事务状态为SHIRNKING，对于X锁，直接解锁就行了。</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">TransactionManager::Commit</span><span class="hljs-params">(Transaction *txn)</span> </span>&#123;<br>  <span class="hljs-built_in">LOG_DEBUG</span>(<span class="hljs-string">&quot;%d: Start to commit&quot;</span>, txn-&gt;<span class="hljs-built_in">GetTransactionId</span>());<br>  txn-&gt;<span class="hljs-built_in">SetState</span>(TransactionState::COMMITTED);<br><br>  <span class="hljs-comment">// Perform all deletes before we commit.</span><br>  <span class="hljs-keyword">auto</span> write_set = txn-&gt;<span class="hljs-built_in">GetWriteSet</span>();<br>  <span class="hljs-keyword">while</span> (!write_set-&gt;<span class="hljs-built_in">empty</span>()) &#123;<br>    <span class="hljs-keyword">auto</span> &amp;item = write_set-&gt;<span class="hljs-built_in">back</span>();<br>    <span class="hljs-keyword">auto</span> table = item.table_;<br>    <span class="hljs-keyword">if</span> (item.wtype_ == WType::DELETE) &#123;<br>      <span class="hljs-comment">// Note that this also releases the lock when holding the page latch.</span><br>      table-&gt;<span class="hljs-built_in">ApplyDelete</span>(item.rid_, txn);<br>    &#125;<br>    write_set-&gt;<span class="hljs-built_in">pop_back</span>();<br>  &#125;<br>  write_set-&gt;<span class="hljs-built_in">clear</span>();<br><br>  <span class="hljs-comment">// Release all the locks.</span><br>  <span class="hljs-built_in">ReleaseLocks</span>(txn);<br>  <span class="hljs-comment">// Release the global transaction latch.</span><br>  global_txn_latch_.<span class="hljs-built_in">RUnlock</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
 
 
 
 <h3 id="concurrent-query-execution"><a href="#concurrent-query-execution" class="headerlink" title="concurrent query execution"></a>concurrent query execution</h3><p>所谓的并发执行，就是在之前的算子中，SeqScan、Insert、delete等。在这些算子中，我们需要通过合适的加锁和解锁操作来实现不同的隔离级别。如何加锁和解锁如下：</p>
-<p><img src="/2023/04/13/CMU-15445/image-20230224163001377.png" srcset="/img/loading.gif" lazyload alt="image-20230224163001377"></p>
+<p><img src="/2023/08/04/CMU-15445/image-20230224163001377.png" srcset="/img/loading.gif" lazyload alt="image-20230224163001377"></p>
 <h2 id="MVCC-多版本并发控制"><a href="#MVCC-多版本并发控制" class="headerlink" title="MVCC 多版本并发控制"></a>MVCC 多版本并发控制</h2><p>参考书籍：《MySQL是怎样运行的》</p>
 <p>参考博客：<a target="_blank" rel="noopener" href="https://www.xiaolincoding.com/mysql/transaction/mvcc.html#read-view-%E5%9C%A8-mvcc-%E9%87%8C%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84">https://www.xiaolincoding.com/mysql/transaction/mvcc.html#read-view-%E5%9C%A8-mvcc-%E9%87%8C%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84</a></p>
 <p>参考博客：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/zhiyiYo/p/16972668.html">https://www.cnblogs.com/zhiyiYo/p/16972668.html</a></p>
@@ -780,7 +780,7 @@
 <blockquote>
 <p>InnoDB会默认的给我们生成一个聚簇索引，如果有主键，就按照主键生成，如果没有主键，就按照第一个不为NULL的列生成，如果都没有，自动生成一个id作为主键生成。</p>
 </blockquote>
-<p><img src="/2023/04/13/CMU-15445/7c635d682bd3cdc421bb9eea33a5a413.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="/2023/08/04/CMU-15445/7c635d682bd3cdc421bb9eea33a5a413.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
 <h3 id="二级索引"><a href="#二级索引" class="headerlink" title="二级索引"></a>二级索引</h3><blockquote>
 <p>这个索引是按照某一个非逐渐列建立的B+树</p>
 <ul>
@@ -807,7 +807,7 @@
 <li>页号</li>
 </ul>
 <p>这是为了能够在大量索引值相同的情况下，快速找到对应的记录，通过这三个判断就能够保证在叶子节点存储时的顺序和正确查找。</p>
-<p><img src="/2023/04/13/CMU-15445/3104c8c3adf36e8931862fe8a0520f5d.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="/2023/08/04/CMU-15445/3104c8c3adf36e8931862fe8a0520f5d.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
 <h3 id="联合索引"><a href="#联合索引" class="headerlink" title="联合索引"></a>联合索引</h3><blockquote>
 <p>联合索引就是使用多个列的大小作为排序规则，同时使用多个列建立B+树</p>
 <ul>
@@ -842,7 +842,7 @@
 <li>通过 roll_pointer 指针可以将这些 undo log 串成一个链表，这个链表就被称为版本链；</li>
 </ul>
 </blockquote>
-<p><img src="/2023/04/13/CMU-15445/%E7%89%88%E6%9C%AC%E9%93%BE.png" srcset="/img/loading.gif" lazyload alt="版本链"></p>
+<p><img src="/2023/08/04/CMU-15445/%E7%89%88%E6%9C%AC%E9%93%BE.png" srcset="/img/loading.gif" lazyload alt="版本链"></p>
 <blockquote>
 <p>其中MVCC多版本并发控制也是基于undo log实现的。</p>
 </blockquote>
@@ -858,7 +858,7 @@
 </li>
 </ul>
 </blockquote>
-<p><img src="/2023/04/13/CMU-15445/wal.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/CMU-15445/wal.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <blockquote>
 <p>被修改 Undo 页面，需要记录对应 redo log 吗？</p>
 </blockquote>
@@ -869,7 +869,7 @@
 <li>undo log 记录了此次事务「<strong>开始前</strong>」的数据状态，记录的是更新<strong>之前</strong>的值；</li>
 </ul>
 <p>事务提交之前发生了崩溃，重启后会通过 undo log 回滚事务，事务提交之后发生了崩溃，重启后会通过 redo log 恢复事务，如下图</p>
-<p><img src="/2023/04/13/CMU-15445/%E4%BA%8B%E5%8A%A1%E6%81%A2%E5%A4%8D.png" srcset="/img/loading.gif" lazyload alt="事务恢复"></p>
+<p><img src="/2023/08/04/CMU-15445/%E4%BA%8B%E5%8A%A1%E6%81%A2%E5%A4%8D.png" srcset="/img/loading.gif" lazyload alt="事务恢复"></p>
 <h2 id="MySQL优化"><a href="#MySQL优化" class="headerlink" title="MySQL优化"></a>MySQL优化</h2><h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><blockquote>
 <p>火山模型有什么优缺点？</p>
 </blockquote>
@@ -925,7 +925,7 @@
   <div class="license-box my-3">
     <div class="license-title">
       <div>CMU-15445 数据库</div>
-      <div>http://example.com/2023/04/13/CMU-15445/</div>
+      <div>http://example.com/2023/08/04/CMU-15445/</div>
     </div>
     <div class="license-meta">
       
@@ -937,7 +937,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2023年4月13日</div>
+          <div>2023年8月4日</div>
         </div>
       
       
@@ -969,18 +969,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/04/21/%E4%B8%AD%E6%96%AD/" title="linux中断">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">linux中断</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/04/13/C++%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="C++基础知识">
-                        <span class="hidden-mobile">C++基础知识</span>
+                      <a href="/2023/08/04/mit-6.828/" title="MIT-6.828操作系统">
+                        <span class="hidden-mobile">MIT-6.828操作系统</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

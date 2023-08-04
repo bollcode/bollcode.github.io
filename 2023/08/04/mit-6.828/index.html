@@ -19,12 +19,12 @@
     <meta name="description" content="mit 6.828基本 git 如果完成lab之后，开始执行下面 git add –all git commit -m“” git push along-lab labx git checkout -b lab(x+1) origin&#x2F;lab(x+1) git merge labx git add –all git commit -m”” git push along-lab lab(x+1) l">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT-6.828操作系统">
-<meta property="og:url" content="http://example.com/2022/10/18/mit-6.828/index.html">
+<meta property="og:url" content="http://example.com/2023/08/04/mit-6.828/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="mit 6.828基本 git 如果完成lab之后，开始执行下面 git add –all git commit -m“” git push along-lab labx git checkout -b lab(x+1) origin&#x2F;lab(x+1) git merge labx git add –all git commit -m”” git push along-lab lab(x+1) l">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/img/mit6.828.jpg">
-<meta property="article:published_time" content="2022-10-18T07:41:15.178Z">
+<meta property="article:published_time" content="2023-08-04T13:02:03.692Z">
 <meta property="article:modified_time" content="2023-08-03T14:45:14.497Z">
 <meta property="article:author" content="bollcode">
 <meta property="article:tag" content="MIT6.828">
@@ -210,8 +210,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2022-10-18 15:41" pubdate>
-          2022年10月18日 下午
+        <time datetime="2023-08-04 21:02" pubdate>
+          2023年8月4日 晚上
         </time>
       </span>
     
@@ -286,7 +286,7 @@
 <p>git add –all</p>
 <p>git commit -m””</p>
 <p>git push along-lab lab(x+1)</p>
-<h2 id="lab1"><a href="#lab1" class="headerlink" title="lab1"></a>lab1</h2><p><img src="/2022/10/18/mit-6.828/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM3NzAyODkw,size_16,color_FFFFFF,t_70.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h2 id="lab1"><a href="#lab1" class="headerlink" title="lab1"></a>lab1</h2><p><img src="/2023/08/04/mit-6.828/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM3NzAyODkw,size_16,color_FFFFFF,t_70.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <h3 id="1-gdb调试"><a href="#1-gdb调试" class="headerlink" title="1. gdb调试"></a>1. gdb调试</h3><blockquote>
 <p>第一步：</p>
 </blockquote>
@@ -325,12 +325,12 @@
 <h2 id="lab2-memory-management"><a href="#lab2-memory-management" class="headerlink" title="lab2  memory management"></a>lab2  memory management</h2><h3 id="1-va-list-可变参数原理"><a href="#1-va-list-可变参数原理" class="headerlink" title="1. va_list 可变参数原理"></a>1. va_list 可变参数原理</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/ZKR_HN/article/details/99558135">可变参数原理</a></p>
 <p>c语言中，函数的参数是从右往左压入栈中的，所以，右边的参数先压入栈，左边的参数后压入栈</p>
 <p>C语言的函数形参是从右向左压入堆栈的，以保证栈顶是第一个参数，而且x86平台内存分配顺序是从高地址到低地址。因此似函数AVEInt(int var1,int<br>var2,…,int varN)内存分配大致上是这样的：(可变参数在中间)</p>
-<p><img src="/2022/10/18/mit-6.828/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1pLUl9ITg==,size_16,color_FFFFFF,t_70.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1pLUl9ITg==,size_16,color_FFFFFF,t_70.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <h1 id="实验总结"><a href="#实验总结" class="headerlink" title="实验总结"></a>实验总结</h1><h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6989917722519797797">https://juejin.cn/post/6989917722519797797</a></p>
 <p>【基本命令】<a target="_blank" rel="noopener" href="https://blog.csdn.net/fantasy_wxe/article/details/52198650">https://blog.csdn.net/fantasy_wxe/article/details/52198650</a></p>
 <h3 id="QEMU"><a href="#QEMU" class="headerlink" title="QEMU"></a>QEMU</h3><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/bakari/p/7858029.html">https://www.cnblogs.com/bakari/p/7858029.html</a></p>
 <p>Qemu 是纯软件实现的虚拟化模拟器，几乎可以模拟任何硬件设备，我们最熟悉的就是能够模拟一台能够独立运行操作系统的虚拟机，虚拟机认为自己和硬件打交道，但其实是和 Qemu 模拟出来的硬件打交道，Qemu 将这些指令转译给真正的硬件。</p>
-<p><img src="/2022/10/18/mit-6.828/431521-20171118213522843-322721697.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/431521-20171118213522843-322721697.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>从本质上看，虚拟出的每个虚拟机对应 host 上的一个 Qemu 进程，而虚拟机的执行线程（如 CPU 线程、I/O 线程等）对应 Qemu 进程的一个线程。</p>
 <p>Qemu 软件虚拟化实现的思路是采用二进制指令翻译技术，主要是提取 guest 代码，然后将其翻译成 TCG 中间代码，最后再将中间代码翻译成 host 指定架构的代码，如 x86 体系就翻译成其支持的代码形式，ARM 架构同理。</p>
 <blockquote>
@@ -364,8 +364,8 @@
 <p>当我们下载完成qemu后，我们需要先编译我们下载的操作系统源码，用来生成能够运行在qemu上的操作系统映像文件，编译完成之后会生成一个obl/kern/kernel.img,这个kernel.img文件就是编译后的操作系统镜像文件，这个文件是操作系统make之后生成的。</p>
 <p>然后我们在lab的目录下输入make qemu，此时qemu就开始加载我们的操作系统内核映像文件了</p>
 <h2 id="lab1-1"><a href="#lab1-1" class="headerlink" title="lab1"></a>lab1</h2><h3 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h3><h4 id="物理地址布局"><a href="#物理地址布局" class="headerlink" title="物理地址布局"></a>物理地址布局</h4><p>PC的物理地址基本内存布局：</p>
-<p><img src="/2022/10/18/mit-6.828/image-20230301192502377-16776699035263.png" srcset="/img/loading.gif" lazyload alt="image-20230301192502377"></p>
-<p><img src="/2022/10/18/mit-6.828/6818371c053c41309ca53d732effd757tplv-k3u1fbpfcp-zoom-in-crop-mark4536000.webp" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230301192502377-16776699035263.png" srcset="/img/loading.gif" lazyload alt="image-20230301192502377"></p>
+<p><img src="/2023/08/04/mit-6.828/6818371c053c41309ca53d732effd757tplv-k3u1fbpfcp-zoom-in-crop-mark4536000.webp" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>第一代PC处理器是16位字长的Intel 8088处理器，这类处理器只能访问1MB的地址空间，即0x00000000-0x000FFFFF。但是这1MB也不是用户都能利用到的，只有低640KB(0x00000000-0x000A0000)的地址空间是用户程序可以使用的（DRAM–动态随机访问内存）。而剩下的384KB的高地址空间则被保留用作其他的目的，比如(0x000A0000-0x000C0000)被用作屏幕显示内容缓冲区，其他的则被非易失性存储器(ROM)所使用，里面会存放一些固件，其中最重要的一部分就是BIOS（存在ROM中），占据了0x000F0000~0x00100000的地址空间。</p>
 <blockquote>
 <p>Bios做了那么些事情，它的主要工作是检测、初始化一些硬件、<strong>构建中断向量表</strong>、<strong>加载boot loader引导加载操纵系统</strong>等功能，BIOS存在F0000-FFFFF这64kb空间，属于ROM，在出厂的时候就有了，一般不能更改。</p>
@@ -393,15 +393,15 @@
 <li>虚拟地址：我们都知道，我们程序员在编写程序的时候，根本不知道以后我们的程序会运行在什么机器上，也不知道这个机器的内存占用情况，所以我们要让程序运行在虚拟地址空间小，也就是说，我们在编写程序时指令出现的地址不一定就是机器上的物理内存地址。这样操作是为了让程序员在编程的时候不用直接操作实际物理地址，因为我们也不知道内存地址的占用情况。所以以后这个程序指令存在哪个物理地址空间由操作系统决定，程序中的地址要访问哪个物理地址由操作系统来确定。这个就是从虚拟地址到物理地址之间的转换</li>
 <li>逻辑地址：程序员编写时看到的是虚拟地址，但是并不是直接把虚拟地址直接写入到这个指令中的，基本都是偏移量，逻辑地址由两部分组成，一个是段选择子，一个是段内偏移量，分别存在cs/ds/ss/es和ip中，采用哪个段选择子一般都是在指令中隐含的，程序员只需要指明段内偏移量，然后分段管理机构将这个逻辑地址转换成<strong>线性地址</strong>（其实就是虚拟地址），。如果机器没有开启分页机制，那么这个线性地址就是实际的物理地址。但是如果开启了分页机制，那么就会将这个线性地址转换成物理地址。</li>
 </ul>
-<p><img src="/2022/10/18/mit-6.828/809277-20160109142207371-383459687.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/809277-20160109142207371-383459687.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <blockquote>
 <p>那么在保护模式下，我们怎么进行寻址的呢？</p>
 </blockquote>
 <p><strong>GTD</strong></p>
 <p>首先在计算机中存在两个表一个是GDT和LDT。分别就全局段描述符表，和本地段描述符表。GDT是全局可见的，他维护了很多段描述符（程序段、数据段、栈段），每个描述符包含了某个段的起始地址，占用多大空间等信息</p>
-<p><img src="/2022/10/18/mit-6.828/809277-20160109143519184-1430449279.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/809277-20160109143519184-1430449279.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>我们从图中可以看到，无论是GDT，还是LDT。每一个表项都包括三个字段：（这三个元素的空间分配总共64字节但是分配的很细碎）</p>
-<p><img src="/2022/10/18/mit-6.828/8560837bbb6e40659359df8b88acbac6tplv-k3u1fbpfcp-zoom-in-crop-mark4536000.webp" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/8560837bbb6e40659359df8b88acbac6tplv-k3u1fbpfcp-zoom-in-crop-mark4536000.webp" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>　　Base : 32位，代表这个程序的这个段的基地址。</p>
 <p>　　Limit : 20位，代表这个程序的这个段的大小。</p>
 <p>　　Flags ：12位，代表这个程序的这个段的访问权限。</p>
@@ -424,10 +424,10 @@
 <blockquote>
 <p>总结：</p>
 </blockquote>
-<p><img src="/2022/10/18/mit-6.828/50ab3e5466814b8ba07d7bccc580430etplv-k3u1fbpfcp-zoom-in-crop-mark4536000.webp" srcset="/img/loading.gif" lazyload alt="image-20210730181710510"></p>
-<h4 id="cpu模型"><a href="#cpu模型" class="headerlink" title="cpu模型"></a>cpu模型</h4><p><img src="/2022/10/18/mit-6.828/image-20230305215350922.png" srcset="/img/loading.gif" lazyload alt="image-20230305215350922"></p>
+<p><img src="/2023/08/04/mit-6.828/50ab3e5466814b8ba07d7bccc580430etplv-k3u1fbpfcp-zoom-in-crop-mark4536000.webp" srcset="/img/loading.gif" lazyload alt="image-20210730181710510"></p>
+<h4 id="cpu模型"><a href="#cpu模型" class="headerlink" title="cpu模型"></a>cpu模型</h4><p><img src="/2023/08/04/mit-6.828/image-20230305215350922.png" srcset="/img/loading.gif" lazyload alt="image-20230305215350922"></p>
 <h3 id="逐步分析启动流程"><a href="#逐步分析启动流程" class="headerlink" title="逐步分析启动流程"></a>逐步分析启动流程</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_41761478/article/details/101102354">https://blog.csdn.net/weixin_41761478/article/details/101102354</a></p>
-<p><img src="/2022/10/18/mit-6.828/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM3NzAyODkw,size_16,color_FFFFFF,t_70-167791316370135.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM3NzAyODkw,size_16,color_FFFFFF,t_70-167791316370135.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <h4 id="首先进入BIOS程序"><a href="#首先进入BIOS程序" class="headerlink" title="首先进入BIOS程序"></a>首先进入BIOS程序</h4><p>当上电之后，cs：ip被强制设成f000：fff0 这个就是BIOS的入口程序地址，在这里会指向跳转命令，跳转到真正的BIOS程序中。</p>
 <p>先简单介绍以下BIOS会做哪些事情：</p>
 <ul>
@@ -464,8 +464,8 @@
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">#</span><span class="language-bash">include &lt;inc/mmu.h&gt;</span><br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">Start the CPU: switch to 32-bit protected mode, jump into C.</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">The BIOS loads this code from the first sector of the hard disk into</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">memory at physical address 0x7c00 and starts executing <span class="hljs-keyword">in</span> real mode</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">with %cs=0 %ip=7c00.</span><br><br>.set PROT_MODE_CSEG, 0x8         # kernel code segment selector<br>.set PROT_MODE_DSEG, 0x10        # kernel data segment selector<br>.set CR0_PE_ON,      0x1         # protected mode enable flag<br><br>.globl start<br>start:<br>  .code16                     # Assemble for 16-bit mode<br>  cli                         # Disable interrupts                                              // 关闭所有中断<br>  cld                         # String operations increment<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_">  # </span><span class="language-bash">Set up the important data segment registers (DS, ES, SS).          //将各种段寄存器清零</span><br>  xorw    %ax,%ax             # Segment number zero<br>  movw    %ax,%ds             # -&gt; Data Segment<br>  movw    %ax,%es             # -&gt; Extra Segment<br>  movw    %ax,%ss             # -&gt; Stack Segment<br><br>下面做的事情就是：<br>1. 打开A20地址线<br>2. 在gdtr寄存器中加载GTD的地址和界限<br>3. 设置cr0寄存器的PE位置为1<br>就进入了保护模式<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_">  # </span><span class="language-bash">Enable A20:</span><br><span class="hljs-meta prompt_">  # </span><span class="language-bash">  For backwards compatibility with the earliest PCs, physical</span><br><span class="hljs-meta prompt_">  # </span><span class="language-bash">  address line 20 is tied low, so that addresses higher than</span><br><span class="hljs-meta prompt_">  # </span><span class="language-bash">  1MB wrap around to zero by default.  This code undoes this.</span><br><span class="hljs-meta prompt_">  # </span><span class="language-bash">这部分指令就是在准备把CPU的工作模式从实模式转换为保护模式。</span><br><span class="hljs-meta prompt_"> # </span><span class="language-bash">我们可以看到其中的指令包括inb，outb这样的IO端口命令。</span><br><span class="hljs-meta prompt_"> # </span><span class="language-bash"> 所以这些指令都是在对外部设备进行操作</span><br>seta20.1:<br>  inb     $0x64,%al               # Wait for not busy<br>  testb   $0x2,%al<br>  jnz     seta20.1<br><br>  movb    $0xd1,%al               # 0xd1 -&gt; port 0x64<br>  outb    %al,$0x64<br><br>seta20.2:<br>  inb     $0x64,%al               # Wait for not busy<br>  testb   $0x2,%al<br>  jnz     seta20.2<br><br>  movb    $0xdf,%al               # 0xdf -&gt; port 0x60         <br>  outb    %al,$0x60<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_">  # </span><span class="language-bash">Switch from real to protected mode, using a bootstrap GDT</span><br><span class="hljs-meta prompt_">  # </span><span class="language-bash">and segment translation that makes virtual addresses</span> <br><span class="hljs-meta prompt_">  # </span><span class="language-bash">identical to their physical addresses, so that the</span> <br><span class="hljs-meta prompt_">  # </span><span class="language-bash">effective memory map does not change during the switch.</span><br>  lgdt    gdtdesc                                                   # 这个gdtdesc在最下面，占6个字节，正好填充GPTR寄存器<br>  movl    %cr0, %eax                                           #cr0 是控制寄存器，可以用来打开保护模式<br>  orl     $CR0_PE_ON, %eax                                # 这里完成对PE位置1，打开保护模式<br>  movl    %eax, %cr0<br>  <br><span class="hljs-meta prompt_">  # </span><span class="language-bash">Jump to next instruction, but <span class="hljs-keyword">in</span> 32-bit code segment.</span><br><span class="hljs-meta prompt_">  # </span><span class="language-bash">Switches processor into 32-bit mode.</span><br>  ljmp    $PROT_MODE_CSEG, $protcseg <br><br>  .code32                     # Assemble for 32-bit mode<br>protcseg:<br><span class="hljs-meta prompt_">  # </span><span class="language-bash">Set up the protected-mode data segment registers</span><br>  movw    $PROT_MODE_DSEG, %ax    # Our data segment selector<br>  movw    %ax, %ds                # -&gt; DS: Data Segment<br>  movw    %ax, %es                # -&gt; ES: Extra Segment<br>  movw    %ax, %fs                # -&gt; FS<br>  movw    %ax, %gs                # -&gt; GS<br>  movw    %ax, %ss                # -&gt; SS: Stack Segment<br>  <br><span class="hljs-meta prompt_">  # </span><span class="language-bash">Set up the stack pointer and call into C.   //设置栈的栈顶指针，就是0x7c00 ，因为栈是向下拓展的，所以选这个作为栈顶</span><br>  movl    $start, %esp<br>  call bootmain<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_">  # </span><span class="language-bash">If bootmain returns (it shouldn<span class="hljs-string">&#x27;t), loop.</span></span><br>spin:<br>  jmp spin<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash"><span class="hljs-string">Bootstrap GDT</span></span><br>.p2align 2                                # force 4 byte alignment<br>gdt:<br>  SEG_NULL				# null seg                      这个是第0个段描述符，不设置任何东西<br>  SEG(STA_X|STA_R, 0x0, 0xffffffff)	# code seg   在这个位置设置代码段，每个段描述符是8个字节<br>  SEG(STA_W, 0x0, 0xffffffff)	        # data seg  在这个位置设置数据段<br><br>gdtdesc:  // 这个就是GDTR的描述符，共6个字节，2个字节表示gdt界限，4个字节表示gdt表的地址<br>  .word   0x17                            # sizeof(gdt) - 1   在这里放一个字(2字节)，就是gdt大小<br>  .long   gdt                             # address gdt       在这里放一个long字(4字节)，就是gdt的地址  总共占据6字节，<br>                                                               #后面把这个放到了gdtr寄存器中<br><br><br></code></pre></td></tr></table></figure>
 
 <p>在上面<code> lgdt    gdtdesc</code>   经过反汇编是 <code>lgdtw 0x7c64</code></p>
-<p><img src="/2022/10/18/mit-6.828/image-20230302200537118-167775873800015.png" srcset="/img/loading.gif" lazyload alt="image-20230302200537118"></p>
-<p><img src="/2022/10/18/mit-6.828/image-20230302200603428.png" srcset="/img/loading.gif" lazyload alt="image-20230302200603428"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230302200537118-167775873800015.png" srcset="/img/loading.gif" lazyload alt="image-20230302200537118"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230302200603428.png" srcset="/img/loading.gif" lazyload alt="image-20230302200603428"></p>
 <p>所以我们可以得到GDT表在哪里？在<code>0x7c4c</code>处,现在一共有3个段描述符，第一个是空的，第二个是code段，第三个是data段，就是上面boot.s文件里的最后面，后面两个段，我们根据段描述符分析，可以看出段基址都是0，段界限呢？</p>
 <p><strong>首先我们要清楚，在<em>80386</em>保护模式下，段界限用<em>20</em>位表示，而且段界限可以是以字节为单位或以<em>4K</em>字节为单位。段属性中有一位对此进行定义，把该位成为粒度位，用符号<em>G</em>标记。<em>G=0</em>表示段界限以字节位位单位，于是<em>20</em>位的界限可表示的范围是<em>1</em>字节至<em>1M</em>字节，增量为<em>1</em>字节；<em>G=1</em>表示段界限以<em>4K</em>字节为单位，于是<em>20</em>位的界限可表示的范围是<em>4K</em>字节至<em>4G</em>字节，增量为<em>4K</em>字节。</strong></p>
 <p>因为x86没有分段，所以段基址都是0，寻址范围都是4G</p>
@@ -489,7 +489,7 @@
 </blockquote>
 <p>在这之前我们先介绍以下elf文件，这个是文件编译链接之后的文件</p>
 <p>elf文件：elf是一种文件格式，主要被用来把程序存放到磁盘上。是在程序被编译和链接后被创建出来的。一个elf文件包括多个段。对于一个可执行程序，通常包含存放代码的文本段(text section)，存放全局变量的data段，存放字符串常量的rodata段。elf文件的头部就是用来描述这个elf文件如何在存储器中存储。</p>
-<p><img src="/2022/10/18/mit-6.828/resize,m_lfit,w_268,limit_1.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/resize,m_lfit,w_268,limit_1.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/nirendao/article/details/123883856">https://blog.csdn.net/nirendao/article/details/123883856</a> （elf文件图解）</p>
 <ul>
 <li>一个 ELF 文件格式的可执行程序的加载运行过程是这样的：<br>通过读取 ELF 头表中的信息了解该可执行程序是否可以运行（版本号，适用的计算机架构等等）<br>通过 ELF 头表中的信息找到程序头表<br>通过读取 ELF 文件中程序头表的信息了解可执行文件中各个段的位置以及加载方式</li>
@@ -502,7 +502,7 @@
 
 <p><strong>上面这个就是读取了4080字节的磁盘内容到内存中，位置就是0x10000处，这个内容包含了elf header 和program header table</strong></p>
 <p>我们用<code>readelf -l kernel</code> 命令可以查看内核elf文件</p>
-<p><img src="/2022/10/18/mit-6.828/image-20230302220553389-167776595437619.png" srcset="/img/loading.gif" lazyload alt="image-20230302220553389"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230302220553389-167776595437619.png" srcset="/img/loading.gif" lazyload alt="image-20230302220553389"></p>
 <p>先检查是不是elf文件</p>
 <p>然后将<strong>每个program header对应的内核程序</strong>读进来，**==内核程序放在了0x100000上==**</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c"><br><span class="hljs-comment">// is this a valid ELF?                                      先检查是不是elf文件</span><br>	<span class="hljs-keyword">if</span> (ELFHDR-&gt;e_magic != ELF_MAGIC)<br>		<span class="hljs-keyword">goto</span> bad;<br><br>	<span class="hljs-comment">// load each program segment (ignores ph flags)</span><br>	<span class="hljs-comment">//ELFHDR-&gt;e_phoff这个代表的是第一个程序头在elf文件内的偏移量</span><br>	<span class="hljs-comment">//ph此时就代表指向了第一个程序头在内存中的位置</span><br>	ph = (<span class="hljs-keyword">struct</span> Proghdr *) ((<span class="hljs-type">uint8_t</span> *) ELFHDR + ELFHDR-&gt;e_phoff);<br>	<span class="hljs-comment">//ELFHDR-&gt;e_phnum表示有几个程序头，eph指向最后一个程序头；</span><br>	eph = ph + ELFHDR-&gt;e_phnum;<br>	<span class="hljs-keyword">for</span> (; ph &lt; eph; ph++) &#123;<br>	<span class="hljs-comment">//开始加载每个程序段      也就是内核程序段和数据段等内容</span><br>		<span class="hljs-comment">// p_pa is the load address of this segment (as well</span><br>		<span class="hljs-comment">// as the physical address)</span><br>		<span class="hljs-comment">//ph-&gt;p_offset表示在文件内的偏移字节数，ph-&gt;p_memsz表示在内存中的大小，ph-&gt;p_pa表示在内存中的地址</span><br>		<span class="hljs-comment">// 第一个段 p_pa == 0x100000      p_memsz = 0x7c96 p_offset = 0x1000 正好对应的4096开始，和刚才elf header读进来后面的保持一致 </span><br>		readseg(ph-&gt;p_pa, ph-&gt;p_memsz, ph-&gt;p_offset);<br>		<span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; ph-&gt;p_memsz - ph-&gt;p_filesz; i++) &#123;<br>			*((<span class="hljs-type">char</span> *) ph-&gt;p_pa + ph-&gt;p_filesz + i) = <span class="hljs-number">0</span>;<br>		&#125;<br>	&#125;<br></code></pre></td></tr></table></figure>
@@ -513,9 +513,9 @@
 
 <p><strong>e_entry字段指向的是这个文件的执行入口地址，也就是真正的内核程序，call指令就是跳转过去执行。 自此就把控制权从boot loader转交给了操作系统的内核。</strong></p>
 <h4 id="进入真正的内核程序"><a href="#进入真正的内核程序" class="headerlink" title="进入真正的内核程序"></a>进入真正的内核程序</h4><p>我们先看看这个内核程序在哪（上面我们说了在0x100000）,执行下面的指令，发现确实正确，但是我们注意一下，VMA（链接地址）是f0100000这个其实就是编译器链接的地址，<strong>其实可以理解成虚拟地址</strong>，后面的LMA才是真正的物理地址</p>
-<p><img src="/2022/10/18/mit-6.828/image-20230303171954183.png" srcset="/img/loading.gif" lazyload alt="image-20230303171954183"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230303171954183.png" srcset="/img/loading.gif" lazyload alt="image-20230303171954183"></p>
 <p><strong>objdump -x obj/kern/kernel</strong>可以查看Program header table</p>
-<p><img src="/2022/10/18/mit-6.828/809277-20160225131553240-877979384.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/809277-20160225131553240-877979384.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>其中Program Header中列出的是所有被加载到内存中的段的信息，这也是Program Headers Table的表项。每一个表项图中都把这个表项中涉及到的所有字段都列出来了。可见有一些段最后没有被加入到内存之中。在上图中，那些需要被加载到内存的段被标记为LOAD。</p>
 <p>我们之前知道了bootloader程序的链接地址和物理地址都是在0x7c00.</p>
 <blockquote>
@@ -532,10 +532,10 @@
 <p>分段模式</p>
 </blockquote>
 <p>分段模式下没有虚拟地址一说，就是每个程序的段基本上都是放在一起的，然后此时进程A和进程B记忆进程C正在内存中运行，这个时候进程C关掉了，就会释放占用的内存，假如在A和B之间，此时D想要进来，但是D的大小比C大就无法利用刚才的内存，只能等待更多的空间，这就造成了浪费。</p>
-<p><img src="/2022/10/18/mit-6.828/image-20230303211137237-167784909884623.png" srcset="/img/loading.gif" lazyload alt="image-20230303211137237"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230303211137237-167784909884623.png" srcset="/img/loading.gif" lazyload alt="image-20230303211137237"></p>
 <p>分段模式下如何访问地址的：</p>
 <p>首先是先通过段选择子找到段描述符（在GDT中），在段的描述符中存着段基址，然后段基址加上段内偏移地址就能够找到物理地址了</p>
-<img src="/2022/10/18/mit-6.828/image-20230303212017076-167784961861625.png" srcset="/img/loading.gif" lazyload alt="image-20230303212017076" style="zoom:50%;">
+<img src="/2023/08/04/mit-6.828/image-20230303212017076-167784961861625.png" srcset="/img/loading.gif" lazyload alt="image-20230303212017076" style="zoom:50%;">
 
 
 
@@ -543,9 +543,9 @@
 <p>分页模式</p>
 </blockquote>
 <p>通过将内存空间分成一个个的page，每个page是一个4096字节的空间，然后如果加载一个进程，就将这个进程放在不同的分散的各个页当中，然后通过一个页表记录虚拟地址和物理地址的映射关系。</p>
-<p><img src="/2022/10/18/mit-6.828/image-20230303215129867-167785149089327.png" srcset="/img/loading.gif" lazyload alt="image-20230303215129867"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230303215129867-167785149089327.png" srcset="/img/loading.gif" lazyload alt="image-20230303215129867"></p>
 <p><strong>在页表中，每个地址大小都是占4个字节，32为，因为每一个页大小是4092字节，所以地址的后12位都是0，这个12位用来作为这个页的访问权限，比如页读写的权限等。</strong></p>
-<p><img src="/2022/10/18/mit-6.828/image-20230307133653843.png" srcset="/img/loading.gif" lazyload alt="image-20230307133653843"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230307133653843.png" srcset="/img/loading.gif" lazyload alt="image-20230307133653843"></p>
 <p>那个页表寄存器是CR3寄存器，存着页目录表的地址（物理地址）。</p>
 <p>页表是存储在内存里的，<strong>内存管理单元</strong> （<em>MMU</em>）就做将虚拟内存地址转换成物理地址的工作。</p>
 <p>开启分页模式步骤：</p>
@@ -578,7 +578,7 @@
 <h4 id="进入init-c"><a href="#进入init-c" class="headerlink" title="进入init.c"></a>进入init.c</h4><blockquote>
 <p>首先是初始化一些设备，用来实现printf函数</p>
 </blockquote>
-<p><img src="/2022/10/18/mit-6.828/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MTc2MTQ3OA==,size_16,color_FFFFFF,t_70.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MTc2MTQ3OA==,size_16,color_FFFFFF,t_70.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>基本流程：</p>
 <p>kern/monitor.c的作用是实现内核与用户的交互。阅读monitor.c，发现它是直接调用printf.c中的cprintf（）来在屏幕上输出，接下来的调用顺序是：cprintf()-&gt;vcprintf（）-&gt;printfmt.c中的vprintfmt（）-&gt;printf.c中的putch()-&gt;console.c中的cputchar()-&gt;cons_putc（）。由注释知最后这个cons_putc()函数的作用是输出一个字符到控制台。</p>
 <h5 id="分析方法调用的时候入栈和出栈的流程"><a href="#分析方法调用的时候入栈和出栈的流程" class="headerlink" title="分析方法调用的时候入栈和出栈的流程"></a><strong>分析方法调用的时候入栈和出栈的流程</strong></h5><blockquote>
@@ -588,8 +588,8 @@
 <p><strong>而ebp寄存器</strong>则是记录每一个程序的栈帧的相关信息的一个非常重要的寄存器。他可以理解为每一个栈帧的边界，ebp到esp之间的空间就是代表着当前栈帧（这个函数）的占用的空间，用来存放一些临时变量、调用其他函数的参数、以及其他函数执行完后的返回地址等。假如我们想调用一个函数（<strong>会执行call等指令</strong>），那么先做的事情就是将被调用函数的参数从右往左以此压入栈中，然后再压入被调用函数指向完后的返回地址，然后再把自己这个栈帧的ebp内容存放到栈中，然后更新ebp值为esp的值，这样就进入了下一个栈帧，就可以存放被调用函数运行时的局部变量等。</p>
 <p>当函数执行完成之后（<strong>会调用ret等指令</strong>），他会将ebp的值传入到esp中（相当于指向ebp指向的地址了，这个ebp指向的地址内容是上一个栈帧的ebp旧值），这样就相当于释放了栈帧，然后再把ebp恢复为原来的</p>
 <p>值，这样就恢复了原来函数的栈帧（ebp恢复了），然后再获取返回的地址，让eip寄存器指向原来调用函数的地方继续执行。</p>
-<p><img src="/2022/10/18/mit-6.828/809277-20160229215738095-1864590140.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
-<p><img src="/2022/10/18/mit-6.828/lab1_5_gcc%E8%BF%87%E7%A8%8B%E8%B0%83%E7%94%A82.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/809277-20160229215738095-1864590140.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/lab1_5_gcc%E8%BF%87%E7%A8%8B%E8%B0%83%E7%94%A82.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p><strong>以下是函数执行的细节</strong>：</p>
 <blockquote>
 <ol>
@@ -603,8 +603,8 @@
 </blockquote>
 <p>lab1到这里就基本结束了。</p>
 <h2 id="lab2"><a href="#lab2" class="headerlink" title="lab2"></a>lab2</h2><p>经历过lab1之后我们的物理内存分配大概是怎么样的？</p>
-<p><img src="/2022/10/18/mit-6.828/20160519183449981.png" srcset="/img/loading.gif" lazyload alt="img"></p>
-<p><img src="/2022/10/18/mit-6.828/image-20230304163216000-167791873698139.png" srcset="/img/loading.gif" lazyload alt="image-20230304163216000"></p>
+<p><img src="/2023/08/04/mit-6.828/20160519183449981.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230304163216000-167791873698139.png" srcset="/img/loading.gif" lazyload alt="image-20230304163216000"></p>
 <blockquote>
 <p>本实验要讲述的内容：</p>
 </blockquote>
@@ -700,13 +700,13 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//这个方法是将UTOP上面的区域都映射到了指定的区域，直接定死了</span><br><span class="hljs-comment">// 完成虚拟地址到物理地址的映射（也就是把虚拟地址和物理地址的映射关系存在页表中）</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span><br><span class="hljs-title function_">boot_map_region</span><span class="hljs-params">(<span class="hljs-type">pde_t</span> *pgdir, <span class="hljs-type">uintptr_t</span> va, <span class="hljs-type">size_t</span> size, <span class="hljs-type">physaddr_t</span> pa, <span class="hljs-type">int</span> perm)</span><br>&#123;<br>	<span class="hljs-comment">// Fill this function in</span><br>	<span class="hljs-comment">//获取页表项的地址</span><br>	<span class="hljs-type">pte_t</span> *pte =<span class="hljs-literal">NULL</span>;<br>	<span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;size;i= i + PGSIZE)&#123;<br>		<span class="hljs-comment">//根据这个虚拟地址，获取页表项地址，如果不存在或者超过了一个页表的大小，会重新创建</span><br>		pte = pgdir_walk(pgdir,(<span class="hljs-type">void</span> *)va,<span class="hljs-literal">true</span>);<br>		<span class="hljs-comment">//给页表项赋映射的地址</span><br>		*pte = (pa|perm|PTE_P); <span class="hljs-comment">//PTE_P表示存在，perm表示访问页面的权限，因为低12位是用来作为标志位的，高20位用来做地址</span><br>		pa += PGSIZE;<br>		va += PGSIZE;<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <h4 id="内存布局与映射关系"><a href="#内存布局与映射关系" class="headerlink" title="内存布局与映射关系"></a>内存布局与映射关系</h4><p>JOS将线性地址空间分为两部分，由定义在inc/memlayout.h中的ULIM分割。ULIM以上的部分用户没有权限访问，内核有读写权限。</p>
-<p><img src="/2022/10/18/mit-6.828/lab2_5_lab2%E5%90%8E%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%88%B0%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E6%98%A0%E5%B0%84.png" srcset="/img/loading.gif" lazyload alt="内核虚拟地址空间到物理地址空间映射"></p>
+<p><img src="/2023/08/04/mit-6.828/lab2_5_lab2%E5%90%8E%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%88%B0%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E6%98%A0%E5%B0%84.png" srcset="/img/loading.gif" lazyload alt="内核虚拟地址空间到物理地址空间映射"></p>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>1.提供管理物理内存的函数和数据结构：</p>
-<p><img src="/2022/10/18/mit-6.828/lab2_7_%E6%80%BB%E7%BB%93_%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86.png" srcset="/img/loading.gif" lazyload alt="JOS物理内存管理"></p>
+<p><img src="/2023/08/04/mit-6.828/lab2_7_%E6%80%BB%E7%BB%93_%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86.png" srcset="/img/loading.gif" lazyload alt="JOS物理内存管理"></p>
 <p>2.提供一个页表完成对虚拟地址和物理地址之间的映射</p>
-<p><img src="/2022/10/18/mit-6.828/lab2_8_%E6%80%BB%E7%BB%93_%E9%A1%B5%E8%A1%A8%E7%AE%A1%E7%90%86%E5%87%BD%E6%95%B0.png" srcset="/img/loading.gif" lazyload alt="JOS页表管理"></p>
+<p><img src="/2023/08/04/mit-6.828/lab2_8_%E6%80%BB%E7%BB%93_%E9%A1%B5%E8%A1%A8%E7%AE%A1%E7%90%86%E5%87%BD%E6%95%B0.png" srcset="/img/loading.gif" lazyload alt="JOS页表管理"></p>
 <p>3.映射内核的线性地址空间到物理地址空间</p>
-<p><img src="/2022/10/18/mit-6.828/lab2_5_lab2%E5%90%8E%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%88%B0%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E6%98%A0%E5%B0%84-167801655399147.png" srcset="/img/loading.gif" lazyload alt="JOS内核线性地址空间按"></p>
+<p><img src="/2023/08/04/mit-6.828/lab2_5_lab2%E5%90%8E%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%88%B0%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E6%98%A0%E5%B0%84-167801655399147.png" srcset="/img/loading.gif" lazyload alt="JOS内核线性地址空间按"></p>
 <blockquote>
 <p><strong>最终：现在我们可以直接使用UPAGES这个虚拟地址直接访问pages数组，使用UVPT访问内核页目录表，使用KSTACKTOP访问内核栈。</strong></p>
 </blockquote>
@@ -728,7 +728,7 @@
 <p>ENV结构定义在inc/env.h中：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Env</span> &#123;</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Trapframe</span> <span class="hljs-title">env_tf</span>;</span>	<span class="hljs-comment">// Saved registers // 用来保存当进程切换时进程的状态信息，方便后面恢复</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Env</span> *<span class="hljs-title">env_link</span>;</span>		<span class="hljs-comment">// Next free Env</span><br>	<span class="hljs-type">envid_t</span> env_id;			<span class="hljs-comment">// Unique environment identifier</span><br>	<span class="hljs-type">envid_t</span> env_parent_id;		<span class="hljs-comment">// env_id of this env&#x27;s parent</span><br>	<span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">EnvType</span> <span class="hljs-title">env_type</span>;</span>		<span class="hljs-comment">// Indicates special system environments</span><br>	<span class="hljs-type">unsigned</span> env_status;		<span class="hljs-comment">// Status of the environment  </span><br>	<span class="hljs-type">uint32_t</span> env_runs;		<span class="hljs-comment">// Number of times environment has run</span><br>	<span class="hljs-type">int</span> env_cpunum;			<span class="hljs-comment">// The CPU that the env is running on</span><br><br>	<span class="hljs-comment">// Address space</span><br>	<span class="hljs-type">pde_t</span> *env_pgdir;		<span class="hljs-comment">// Kernel virtual address of page dir</span><br><br>	<span class="hljs-comment">// Exception handling</span><br>	<span class="hljs-type">void</span> *env_pgfault_upcall;	<span class="hljs-comment">// Page fault upcall entry point</span><br><br>	<span class="hljs-comment">// Lab 4 IPC</span><br>	<span class="hljs-comment">//当进程使用env_ipc_recv函数等待信息时，会将这个成员设置为1，然后堵塞等待；当一个进程向它发消息解除堵塞后，发送进程将此成员修改为0。</span><br>	<span class="hljs-type">bool</span> env_ipc_recving;		<span class="hljs-comment">// Env is blocked receiving  </span><br>	<span class="hljs-comment">//如果进程要接受消息并且是传送页，保存页映射的地址，且该地址&lt;=UTOP</span><br>	<span class="hljs-type">void</span> *env_ipc_dstva;		<span class="hljs-comment">// VA at which to map received page</span><br>	<span class="hljs-comment">//若等待消息的进程接收到消息，发送方将接收方此成员设置为消息值。</span><br>	<span class="hljs-type">uint32_t</span> env_ipc_value;		<span class="hljs-comment">// Data value sent to us</span><br>	<br>	<span class="hljs-type">envid_t</span> env_ipc_from;		<span class="hljs-comment">// envid of the sender</span><br>	<span class="hljs-comment">//如果进程要接收消息并且传送页，那么发送方发送页之后将传送的页权限赋给这个成员。</span><br>	<span class="hljs-type">int</span> env_ipc_perm;		<span class="hljs-comment">// Perm of page mapping received</span><br>&#125;;<br></code></pre></td></tr></table></figure>
 
-<h3 id="内存空间映射"><a href="#内存空间映射" class="headerlink" title="内存空间映射"></a>内存空间映射</h3><p><img src="/2022/10/18/mit-6.828/image-20230306113621738.png" srcset="/img/loading.gif" lazyload alt="image-20230306113621738"></p>
+<h3 id="内存空间映射"><a href="#内存空间映射" class="headerlink" title="内存空间映射"></a>内存空间映射</h3><p><img src="/2023/08/04/mit-6.828/image-20230306113621738.png" srcset="/img/loading.gif" lazyload alt="image-20230306113621738"></p>
 <h3 id="进程创建和释放过程"><a href="#进程创建和释放过程" class="headerlink" title="进程创建和释放过程"></a>进程创建和释放过程</h3><blockquote>
 <p>env_init():这个方法用来初始化这个envs链表，并初始化GDT描述符表段选择子</p>
 </blockquote>
@@ -826,7 +826,7 @@
 </ul>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c">+--------------------+ KSTACKTOP             <br>| <span class="hljs-number">0x00000</span> | old SS   |     <span class="hljs-string">&quot; - 4</span><br><span class="hljs-string">|      old ESP       |     &quot;</span> - <span class="hljs-number">8</span><br>|     old EFLAGS     |     <span class="hljs-string">&quot; - 12</span><br><span class="hljs-string">| 0x00000 | old CS   |     &quot;</span> - <span class="hljs-number">16</span><br>|      old EIP       |     <span class="hljs-string">&quot; - 20</span><br><span class="hljs-string">|     error code     |     &quot;</span> - <span class="hljs-number">24</span> &lt;---- ESP<br>+--------------------+   <br><br></code></pre></td></tr></table></figure>
 
-<p><img src="/2022/10/18/mit-6.828/lab3_5_cpu%E6%A8%A1%E5%9E%8B-16781098671175.png" srcset="/img/loading.gif" lazyload alt="CPU模型"></p>
+<p><img src="/2023/08/04/mit-6.828/lab3_5_cpu%E6%A8%A1%E5%9E%8B-16781098671175.png" srcset="/img/loading.gif" lazyload alt="CPU模型"></p>
 <h3 id="中断描述符表"><a href="#中断描述符表" class="headerlink" title="中断描述符表"></a>中断描述符表</h3><p>中断和异常都是保护控制转换。在Intel体系语义下，中断是一种由处理器之外的异步事件引起的保护控制转换，比如外部设备的通知。异常是由正在执行的代码引起的同步的保护控制转换，比如访问无效内存，或者除以0。<br>为了防止中断发生时，当前运行的代码不会跳转到内核的任意位置执行，x86提供了两种机制：</p>
 <ol>
 <li><p>中断描述符表：处理器确保异常或中断发生时，只会跳转到由内核定义的代码点处执行。x86允许256种不同的中断或异常进入点，每一个都有一个向量号，从0到255。CPU使用向量号作为IDT的索引，取出一个IDT描述符，根据IDT描述符可以获取中断处理函数cs和eip的值，从而进入中断处理函数执行。</p>
@@ -834,7 +834,7 @@
 <li><p>任务状态段(TSS)：当x86异常发生，并且发生了从用户模式到内核模式的转换时，处理器也会进行栈切换。一个叫做task state segment (TSS)的结构指定了栈的位置。TSS是一个很大的数据结构，由于JOS中内核模式就是指权限0，所以处理器只使用TSS结构的ESP0和SS0两个字段来定义内核栈，其它字段不使用。那么内核如何找到这个TSS结构的呢？JOS内核维护了一个<code>static struct Taskstate ts;</code>的变量，然后在trap_init_percpu()函数中，设置TSS选择子（使用ltr指令）。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span><br><span class="hljs-title function_">trap_init_percpu</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>	<span class="hljs-comment">// The example code here sets up the Task State Segment (TSS) and</span><br>	<span class="hljs-comment">// the TSS descriptor for CPU 0. But it is incorrect if we are</span><br>	<span class="hljs-comment">// running on other CPUs because each CPU has its own kernel stack.</span><br>	<span class="hljs-comment">// Fix the code so that it works for all CPUs.</span><br>	<span class="hljs-comment">//</span><br>	<span class="hljs-comment">// Hints:</span><br>	<span class="hljs-comment">//   - The macro &quot;thiscpu&quot; always refers to the current CPU&#x27;s</span><br>	<span class="hljs-comment">//     struct CpuInfo;</span><br>	<span class="hljs-comment">//   - The ID of the current CPU is given by cpunum() or</span><br>	<span class="hljs-comment">//     thiscpu-&gt;cpu_id;</span><br>	<span class="hljs-comment">//   - Use &quot;thiscpu-&gt;cpu_ts&quot; as the TSS for the current CPU,</span><br>	<span class="hljs-comment">//     rather than the global &quot;ts&quot; variable;</span><br>	<span class="hljs-comment">//   - Use gdt[(GD_TSS0 &gt;&gt; 3) + i] for CPU i&#x27;s TSS descriptor;</span><br>	<span class="hljs-comment">//   - You mapped the per-CPU kernel stacks in mem_init_mp()</span><br>	<span class="hljs-comment">//   - Initialize cpu_ts.ts_iomb to prevent unauthorized environments</span><br>	<span class="hljs-comment">//     from doing IO (0 is not the correct value!)</span><br>	<span class="hljs-comment">//</span><br>	<span class="hljs-comment">// ltr sets a &#x27;busy&#x27; flag in the TSS selector, so if you</span><br>	<span class="hljs-comment">// accidentally load the same TSS on more than one CPU, you&#x27;ll</span><br>	<span class="hljs-comment">// get a triple fault.  If you set up an individual CPU&#x27;s TSS</span><br>	<span class="hljs-comment">// wrong, you may not get a fault until you try to return from</span><br>	<span class="hljs-comment">// user space on that CPU.</span><br>	<span class="hljs-comment">//</span><br>	<span class="hljs-comment">// LAB 4: Your code here:</span><br>	thiscpu-&gt;cpu_ts.ts_esp0 = KSTACKTOP - cpunum() * (KSTKGAP + KSTKSIZE); <span class="hljs-comment">// 设置内核栈位置在这TSS结构中，后面要把这个TSS地址放到CPU的寄存器(TR寄存器)中</span><br>    thiscpu-&gt;cpu_ts.ts_ss0 = GD_KD;<br>	thiscpu-&gt;cpu_ts.ts_iomb = <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> Taskstate);<br>    <span class="hljs-comment">// Initialize the TSS slot of the gdt.</span><br>    <span class="hljs-comment">// TSS Task State Segment</span><br>    gdt[(GD_TSS0 &gt;&gt; <span class="hljs-number">3</span>) + cpunum()] = SEG16(STS_T32A, (<span class="hljs-type">uint32_t</span>) (&amp;thiscpu-&gt;cpu_ts), <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> Taskstate) - <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);<br>    gdt[(GD_TSS0 &gt;&gt; <span class="hljs-number">3</span>) + cpunum()].sd_s = <span class="hljs-number">0</span>;<br><br>    <span class="hljs-comment">// Load the TSS selector (like other segment selectors, the</span><br>    <span class="hljs-comment">// bottom three bits are special; we leave them 0)</span><br>    ltr(GD_TSS0 + <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> Segdesc) * cpunum());<br><br>    <span class="hljs-comment">// Load the IDT</span><br>    lidt(&amp;idt_pd);<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<p><img src="/2022/10/18/mit-6.828/lab3_5_cpu%E6%A8%A1%E5%9E%8B.png" srcset="/img/loading.gif" lazyload alt="CPU模型"></p>
+<p><img src="/2023/08/04/mit-6.828/lab3_5_cpu%E6%A8%A1%E5%9E%8B.png" srcset="/img/loading.gif" lazyload alt="CPU模型"></p>
 </li>
 </ol>
 <h4 id="初始化中断描述符表"><a href="#初始化中断描述符表" class="headerlink" title="初始化中断描述符表"></a>初始化中断描述符表</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><code class="hljs c"><br><span class="hljs-comment">/* Interrupt descriptor table.  (Must be built at run time because</span><br><span class="hljs-comment"> * shifted function addresses can&#x27;t be represented in relocation records.)</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Gatedesc</span> <span class="hljs-title">idt</span>[256] =</span> &#123; &#123; <span class="hljs-number">0</span> &#125; &#125;; <span class="hljs-comment">// 运行时分配内存.bss中</span><br><br><span class="hljs-comment">/*初始化IDT中断描述符表*/</span><br><span class="hljs-type">void</span><br><span class="hljs-title function_">trap_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>	<span class="hljs-comment">//全局描述表</span><br>	<span class="hljs-keyword">extern</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Segdesc</span> <span class="hljs-title">gdt</span>[];</span>        <br><br>	<span class="hljs-comment">// LAB 3: Your code here.</span><br>	<span class="hljs-comment">//这些函数都是在trapentry.S中定义的，也就是所谓的trapHandler</span><br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th0</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th1</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th3</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th4</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th5</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th6</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th7</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th8</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th9</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th10</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th11</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th12</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th13</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th14</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th16</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">th_syscall</span><span class="hljs-params">()</span>;<br><br>	<span class="hljs-type">void</span> <span class="hljs-title function_">timer_handler</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">kbd_handler</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">serial_handler</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">spurious_handler</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">ide_handler</span><span class="hljs-params">()</span>;<br>	<span class="hljs-type">void</span> <span class="hljs-title function_">error_handler</span><span class="hljs-params">()</span>;<br>	<span class="hljs-comment">//下面就是初始化idt表，段选择子都是内核代码段，因为这些函数都是定在内核态的，这里dpl哦有些设置为0，是因为就是在</span><br>	SETGATE(idt[<span class="hljs-number">0</span>], <span class="hljs-number">0</span>, GD_KT, th0, <span class="hljs-number">0</span>);		<span class="hljs-comment">//格式如下：SETGATE(gate, istrap, sel, off, dpl)，定义在inc/mmu.h中</span><br>	SETGATE(idt[<span class="hljs-number">1</span>], <span class="hljs-number">0</span>, GD_KT, th1, <span class="hljs-number">0</span>);  <span class="hljs-comment">//设置idt[1]，段选择子为内核代码段，段内偏移为th1</span><br>	SETGATE(idt[<span class="hljs-number">3</span>], <span class="hljs-number">0</span>, GD_KT, th3, <span class="hljs-number">3</span>);<br>	SETGATE(idt[<span class="hljs-number">4</span>], <span class="hljs-number">0</span>, GD_KT, th4, <span class="hljs-number">0</span>);<br>	SETGATE(idt[<span class="hljs-number">5</span>], <span class="hljs-number">0</span>, GD_KT, th5, <span class="hljs-number">0</span>);<br>	SETGATE(idt[<span class="hljs-number">6</span>], <span class="hljs-number">0</span>, GD_KT, th6, <span class="hljs-number">0</span>);<br>	SETGATE(idt[<span class="hljs-number">7</span>], <span class="hljs-number">0</span>, GD_KT, th7, <span class="hljs-number">0</span>);<br>	SETGATE(idt[<span class="hljs-number">8</span>], <span class="hljs-number">0</span>, GD_KT, th8, <span class="hljs-number">0</span>);<br>	SETGATE(idt[<span class="hljs-number">9</span>], <span class="hljs-number">0</span>, GD_KT, th9, <span class="hljs-number">0</span>);<br>	SETGATE(idt[<span class="hljs-number">10</span>], <span class="hljs-number">0</span>, GD_KT, th10, <span class="hljs-number">0</span>);<br>	SETGATE(idt[<span class="hljs-number">11</span>], <span class="hljs-number">0</span>, GD_KT, th11, <span class="hljs-number">0</span>);<br>	SETGATE(idt[<span class="hljs-number">12</span>], <span class="hljs-number">0</span>, GD_KT, th12, <span class="hljs-number">0</span>);<br>	SETGATE(idt[<span class="hljs-number">13</span>], <span class="hljs-number">0</span>, GD_KT, th13, <span class="hljs-number">0</span>);<br>	SETGATE(idt[<span class="hljs-number">14</span>], <span class="hljs-number">0</span>, GD_KT, th14, <span class="hljs-number">0</span>);<br>	SETGATE(idt[<span class="hljs-number">16</span>], <span class="hljs-number">0</span>, GD_KT, th16, <span class="hljs-number">0</span>);<br><br>	SETGATE(idt[T_SYSCALL], <span class="hljs-number">0</span>, GD_KT, th_syscall, <span class="hljs-number">3</span>);		<span class="hljs-comment">//为什么门的DPL要定义为3</span><br>															<span class="hljs-comment">//因为门相当于跳板，用户使用系统调用的时候，肯定要门的特权级低于用户级，只能为3    </span><br>	<span class="hljs-comment">// IRQ</span><br>	SETGATE(idt[IRQ_OFFSET + IRQ_TIMER],    <span class="hljs-number">0</span>, GD_KT, timer_handler, <span class="hljs-number">0</span>);<br>	SETGATE(idt[IRQ_OFFSET + IRQ_KBD],      <span class="hljs-number">0</span>, GD_KT, kbd_handler,     <span class="hljs-number">0</span>);<br>	SETGATE(idt[IRQ_OFFSET + IRQ_SERIAL],   <span class="hljs-number">0</span>, GD_KT, serial_handler,  <span class="hljs-number">0</span>);<br>	SETGATE(idt[IRQ_OFFSET + IRQ_SPURIOUS], <span class="hljs-number">0</span>, GD_KT, spurious_handler, <span class="hljs-number">0</span>);<br>	SETGATE(idt[IRQ_OFFSET + IRQ_IDE],      <span class="hljs-number">0</span>, GD_KT, ide_handler,     <span class="hljs-number">0</span>);<br>	SETGATE(idt[IRQ_OFFSET + IRQ_ERROR],    <span class="hljs-number">0</span>, GD_KT, error_handler,   <span class="hljs-number">0</span>);<br>	<span class="hljs-comment">// Per-CPU setup </span><br>	trap_init_percpu();<br>&#125;<br></code></pre></td></tr></table></figure>
@@ -911,7 +911,7 @@
 <h3 id="Page-faults-and-memory-protection"><a href="#Page-faults-and-memory-protection" class="headerlink" title="Page faults and memory protection"></a>Page faults and memory protection</h3><blockquote>
 <p><strong>在页表的每一个项的低12位为标志位，这个就是标志着对应内存的一些权限</strong></p>
 </blockquote>
-<p><img src="/2022/10/18/mit-6.828/image-20230307133719177.png" srcset="/img/loading.gif" lazyload alt="image-20230307133719177"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230307133719177.png" srcset="/img/loading.gif" lazyload alt="image-20230307133719177"></p>
 <p>内存保护是操作系统的非常重要的一项功能，它可以防止由于用户程序崩溃对操作系统带来的破坏与影响。</p>
 <p>操作系统依赖处理器的来实现内存保护。当程序试图访问无效地址或没有访问权限时，处理器在当前指令停住，引发中断进入内核。如果内核能够修复，则在刚才的指令处继续执行，否则程序将无法接着运行。系统调用也为内存保护带来了问题。大部分系统调用接口让用户程序传递一个指针参数给内核。这些指针指向的是用户缓冲区。通过这种方式，系统调用在执行时就可以解引用这些指针。但是这里有两个问题：</p>
 <ol>
@@ -939,9 +939,9 @@
 
 
 
-<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p><img src="/2022/10/18/mit-6.828/image-20230307151155518.png" srcset="/img/loading.gif" lazyload alt="image-20230307151155518"></p>
-<p><img src="/2022/10/18/mit-6.828/image-20230307151246298.png" srcset="/img/loading.gif" lazyload alt="image-20230307151246298"></p>
-<p><img src="/2022/10/18/mit-6.828/image-20230307151307331.png" srcset="/img/loading.gif" lazyload alt="image-20230307151307331"></p>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p><img src="/2023/08/04/mit-6.828/image-20230307151155518.png" srcset="/img/loading.gif" lazyload alt="image-20230307151155518"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230307151246298.png" srcset="/img/loading.gif" lazyload alt="image-20230307151246298"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230307151307331.png" srcset="/img/loading.gif" lazyload alt="image-20230307151307331"></p>
 <h2 id="lab4"><a href="#lab4" class="headerlink" title="lab4"></a>lab4</h2><p>这个实验内容比较多，但是也是围绕进程来说的，主要有以下内容：</p>
 <ol>
 <li>采取多处理器模式，因为现在处理器一般都是多核的，这样每个cpu能够同时运行不同的进程，提升系统的并发性。但是采取多个cpu，就会导致可能会出现多个cpu使用内核程序的可能，所以为了解决这个cpu同时访问内核程序，这里也介绍了锁机制，本实验实现的是spinlock。</li>
@@ -959,7 +959,7 @@
 <p>因此下面我们首先将mmiobase映射到物理地址FE000000处。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> *<br><span class="hljs-title function_">mmio_map_region</span><span class="hljs-params">(<span class="hljs-type">physaddr_t</span> pa, <span class="hljs-type">size_t</span> size)</span><br>&#123;<br>	<span class="hljs-type">static</span> <span class="hljs-type">uintptr_t</span> base = MMIOBASE;<br><br>	size = ROUNDUP(pa+size, PGSIZE);<br>	pa = ROUNDDOWN(pa, PGSIZE);<br>	size -= pa;<br>	<span class="hljs-keyword">if</span> (base+size &gt;= MMIOLIM) panic(<span class="hljs-string">&quot;not enough memory&quot;</span>);<br>	boot_map_region(kern_pgdir, base, size, pa, PTE_PCD|PTE_PWT|PTE_W);<br>	base += size;<br>	<span class="hljs-keyword">return</span> (<span class="hljs-type">void</span>*) (base - size);<br>&#125;<br><br></code></pre></td></tr></table></figure>
 
-<h4 id="每个cpu包含哪些东西"><a href="#每个cpu包含哪些东西" class="headerlink" title="每个cpu包含哪些东西"></a>每个cpu包含哪些东西</h4><p><img src="/2022/10/18/mit-6.828/image-20230307213810307.png" srcset="/img/loading.gif" lazyload alt="image-20230307213810307"></p>
+<h4 id="每个cpu包含哪些东西"><a href="#每个cpu包含哪些东西" class="headerlink" title="每个cpu包含哪些东西"></a>每个cpu包含哪些东西</h4><p><img src="/2023/08/04/mit-6.828/image-20230307213810307.png" srcset="/img/loading.gif" lazyload alt="image-20230307213810307"></p>
 <ol>
 <li>各种寄存器，cs，esp，eip，gdtr，idtr，cr3（内核页目录表）等等</li>
 <li>TSS选择器寄存器，在jos中每个cpu还有一个TSS，用来存储对应的内核栈空间地址。</li>
@@ -1168,7 +1168,7 @@
 </li>
 </ol>
 <p>最后重启这个env，就会去执行页错误处理程序去了，执行完之后就会恢复原来的状态。</p>
-<p><img src="/2022/10/18/mit-6.828/lab4_4_%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91.png" srcset="/img/loading.gif" lazyload alt="JOS缺页异常处理逻辑"></p>
+<p><img src="/2023/08/04/mit-6.828/lab4_4_%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91.png" srcset="/img/loading.gif" lazyload alt="JOS缺页异常处理逻辑"></p>
 <h5 id="实现写时拷贝的fork"><a href="#实现写时拷贝的fork" class="headerlink" title="实现写时拷贝的fork"></a>实现写时拷贝的fork</h5><p>我们先分析一下fork的流程：</p>
 <ol>
 <li>首先我们先调用**set_pgfault_handler()**，将pgfault()设置为页面错误处理函数以及设置父进程env的页错误处理函数入口地址</li>
@@ -1199,11 +1199,11 @@
 <blockquote>
 <p>先fork映射页表关系</p>
 </blockquote>
-<p><img src="/2022/10/18/mit-6.828/image-20230309115148597.png" srcset="/img/loading.gif" lazyload alt="image-20230309115148597"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230309115148597.png" srcset="/img/loading.gif" lazyload alt="image-20230309115148597"></p>
 <blockquote>
 <p>发生页错误</p>
 </blockquote>
-<p><img src="/2022/10/18/mit-6.828/image-20230309115731416.png" srcset="/img/loading.gif" lazyload alt="image-20230309115731416"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230309115731416.png" srcset="/img/loading.gif" lazyload alt="image-20230309115731416"></p>
 <h3 id="抢占式任务处理"><a href="#抢占式任务处理" class="headerlink" title="抢占式任务处理"></a>抢占式任务处理</h3><h4 id="时钟中断和抢占"><a href="#时钟中断和抢占" class="headerlink" title="时钟中断和抢占"></a>时钟中断和抢占</h4><p>到目前为止，我们采用的协同式多任务机制，采用的是用户自己调用sys_yield去主动的让出cpu，但是这种方式会带来其他任务无法获得cpu的机会，因此我们借助硬件来完成中断式的抢占任务。</p>
 <p>我们基于cpu的时钟中断，在我们的中断表中安装相应的外部中断描述符，然后设置好对应的始终中断处理程序，在trap.c的init中处理。</p>
 <p>外部中断（即设备中断），总共有16中可能的外部中断，``picirq.c<code>中的</code>pic_init<code>映射了编号0-15的外部中断到IDT表中，其表项索引为</code>IRQ_OFFSET～IRQ_OFFSET+15（32-47）。也就是当0-15的外部中断发生后，就会被cpu给转到IDT的32-47中断索引对应的中断处理程序上去。（在这个过程，也需要特权级的检测），我们这里使用的了<strong>32号的时钟中断</strong>。</p>
@@ -1254,7 +1254,7 @@
 
 
 
-<p><img src="/2022/10/18/mit-6.828/lab4_5_IPC%E5%8E%9F%E7%90%86.png" srcset="/img/loading.gif" lazyload alt="JOS IPC原理"></p>
+<p><img src="/2023/08/04/mit-6.828/lab4_5_IPC%E5%8E%9F%E7%90%86.png" srcset="/img/loading.gif" lazyload alt="JOS IPC原理"></p>
 <h2 id="lab5"><a href="#lab5" class="headerlink" title="lab5"></a>lab5</h2><p>本lab将实现的是一个文件系统，主要包含下面4部分内容：</p>
 <ul>
 <li>实现一个文件系统进程（FS进程），基于进程实现文件系统，通过给这个进程的eflags寄存器的IOPL位使能，使得这个进程拥有IO读写的能力。从而避免了进入内核态，省去了较多的开销</li>
@@ -1274,7 +1274,7 @@
 <p>Superblocks – 超级块</p>
 <p>超级块主要包含了文件系统的属性元数据，比如blocksize，disksize，根目录位置等，这些特殊的block叫做superblocks</p>
 </blockquote>
-<p><img src="/2022/10/18/mit-6.828/lab5_1_disk_layout.png" srcset="/img/loading.gif" lazyload alt="磁盘结构"></p>
+<p><img src="/2023/08/04/mit-6.828/lab5_1_disk_layout.png" srcset="/img/loading.gif" lazyload alt="磁盘结构"></p>
 <p>结构如下：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Super</span> &#123;</span><br>    <span class="hljs-type">uint32_t</span> s_magic;       <span class="hljs-comment">// Magic number: FS_MAGIC</span><br>    <span class="hljs-type">uint32_t</span> s_nblocks;     <span class="hljs-comment">// Total number of blocks on disk</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">File</span> <span class="hljs-title">s_root</span>;</span>     <span class="hljs-comment">// Root directory node</span><br>&#125;;<br><br></code></pre></td></tr></table></figure>
 
@@ -1287,7 +1287,7 @@
 <p>这个File可以指代目录也可以指代普通文件，由这个type字段标识</p>
 </blockquote>
 <p>这个file结构十分的重要，它记录了这个文件的所有信息，比如文件名，文件大小，文件类型，文件存储位置等信息，在这个文件存储位置是记录了具体的block号，有一个直接索引的长度为10个int大小的数组，记录了这个文件存储的位置，还有一个间接索引的字段，记录了一个block，这个block的内容是一个个block num，记录剩余文件内容的位置，总共可以拥有1034个block</p>
-<p><img src="/2022/10/18/mit-6.828/lab5_2_file%E7%BB%93%E6%9E%84.PNG" srcset="/img/loading.gif" lazyload alt="File文件结构"></p>
+<p><img src="/2023/08/04/mit-6.828/lab5_2_file%E7%BB%93%E6%9E%84.PNG" srcset="/img/loading.gif" lazyload alt="File文件结构"></p>
 <blockquote>
 <p>Block Bitmap</p>
 </blockquote>
@@ -1324,7 +1324,7 @@
 
 
 
-<p><img src="/2022/10/18/mit-6.828/lab5_3_fs%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%92%8C%E7%A3%81%E7%9B%98.png" srcset="/img/loading.gif" lazyload alt="JOS fs进程虚拟地址空间和磁盘关系"></p>
+<p><img src="/2023/08/04/mit-6.828/lab5_3_fs%E8%BF%9B%E7%A8%8B%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%92%8C%E7%A3%81%E7%9B%98.png" srcset="/img/loading.gif" lazyload alt="JOS fs进程虚拟地址空间和磁盘关系"></p>
 <p>fs/fs.c中的fs_init()将会初始化super和bitmap全局指针变量。至此对于文件系统进程只要访问虚拟内存[DISKMAP, DISKMAP+DISKMAX]范围中的地址addr，就会访问到磁盘((uint32_t)addr - DISKMAP) / BLKSIZE block中的数据。如果block数据还没复制到内存物理页，bc_pgfault()缺页处理函数会将数据从磁盘拷贝到某个物理页，并且将addr映射到该物理页。这样FS进程只需要访问虚拟地址空间[DISKMAP, DISKMAP+DISKMAX]就能访问磁盘了。</p>
 <h3 id="File-Operations-–-文件操作"><a href="#File-Operations-–-文件操作" class="headerlink" title="File Operations – 文件操作"></a>File Operations – 文件操作</h3><blockquote>
 <p>基本的文件操作：</p>
@@ -1346,7 +1346,7 @@
 <li><code>file_write(struct File *f, const void *buf, size_t count, off_t offset)</code>：将buf处的count字节写到文件f的offset开始的位置。</li>
 </ol>
 <h3 id="File-System-interface"><a href="#File-System-interface" class="headerlink" title="File System interface"></a>File System interface</h3><p>上面我们为这个文件系统进程提供了一大堆文件操作的函数，但是这些函数只能被文件系统进程使用，而无法被其他的进程使用，因此我们需要进行进程间的通信，实现这个不同的用户进程和这个文件进程通信，通过将要操作的文件信息发送给文件进程，让他给我们操作文件。这其实是一种RPC机制。</p>
-<p><img src="/2022/10/18/mit-6.828/image-20230322210322786.png" srcset="/img/loading.gif" lazyload alt="image-20230322210322786"></p>
+<p><img src="/2023/08/04/mit-6.828/image-20230322210322786.png" srcset="/img/loading.gif" lazyload alt="image-20230322210322786"></p>
 <p>这个机制是如何实现的呢？</p>
 <ul>
 <li>首先我们的文件系统会一直处于接收状态，一直接收IPC请求，然后将对应的请求分配到对应的处理函数中去，并将结果通过IPC发送给用户进程。</li>
@@ -1366,9 +1366,9 @@
 <li>根据ELF文件中program herder，将用户程序以Segment读入内存，并映射到指定的线性地址处。</li>
 <li>调用系统调用sys_env_set_status()设置新的Env结构状态为ENV_RUNNABLE。</li>
 </ol>
-<p><img src="/2022/10/18/mit-6.828/lab5_6_fs%E8%BF%9B%E7%A8%8B%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86.png" srcset="/img/loading.gif" lazyload alt="客户端进程和FS进程交互"></p>
+<p><img src="/2023/08/04/mit-6.828/lab5_6_fs%E8%BF%9B%E7%A8%8B%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86.png" srcset="/img/loading.gif" lazyload alt="客户端进程和FS进程交互"></p>
 <p>更高级的抽象，引入<strong>文件描述符</strong>。通过文件描述符这一层抽象就可以将<strong>控制台，pipe，普通文件</strong>，统统按照文件来对待。文件描述符和pipe的原理总结如下：</p>
-<p><img src="/2022/10/18/mit-6.828/lab5_5_%E6%96%87%E4%BB%B6_fd%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86_pipe%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86.png" srcset="/img/loading.gif" lazyload alt="文件描述符和pipe原理"></p>
+<p><img src="/2023/08/04/mit-6.828/lab5_5_%E6%96%87%E4%BB%B6_fd%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86_pipe%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86.png" srcset="/img/loading.gif" lazyload alt="文件描述符和pipe原理"></p>
 
                 
               </div>
@@ -1394,7 +1394,7 @@
   <div class="license-box my-3">
     <div class="license-title">
       <div>MIT-6.828操作系统</div>
-      <div>http://example.com/2022/10/18/mit-6.828/</div>
+      <div>http://example.com/2023/08/04/mit-6.828/</div>
     </div>
     <div class="license-meta">
       
@@ -1406,7 +1406,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2022年10月18日</div>
+          <div>2023年8月4日</div>
         </div>
       
       
@@ -1438,15 +1438,21 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/03/19/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" title="网络协议">
+                      <a href="/2023/08/04/CMU-15445/" title="CMU-15445 数据库">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">网络协议</span>
+                        <span class="hidden-mobile">CMU-15445 数据库</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
                   </article>
                   <article class="post-next col-6">
                     
+                    
+                      <a href="/2023/07/30/HTTP%E5%8F%8ACookie%E3%80%81Session%E5%92%8CToken.assets/" title="HTTP协议介绍">
+                        <span class="hidden-mobile">HTTP协议介绍</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
                     
                   </article>
                 </div>
